@@ -32,6 +32,14 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/*
+	UPROPERTY(VisibileAnywhere, BlueprintReadOnly, Category = "Component")
+	USceneComponent* Scene;
+
+	UPROPERTY(VisibileAnywhere, BlueprintReadOnly, Category = "Component")
+	UStaticMeshComponent* StaticMeshComponent;
+	*/
+
 public:	
 	// Called every frame
 	// virtual void Tick(float DeltaTime) override;

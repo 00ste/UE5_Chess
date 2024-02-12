@@ -18,41 +18,42 @@ public:
 	// Sets default values for this actor's properties
 	AChessboard();
 
-	// Gets the ChessPiece object at the given position.
+	// Gets the ChessPiece object at the given Position.
 	// Returns a pointer to the ChessPiece, or nullptr if
-	// the Tile at the given position is empty.
-	AChessPiece* getChessPieceAt(FVector2D position) const;
+	// the Tile at the given Position is empty.
+	AChessPiece* GetChessPieceAt(FVector2D Position) const;
 
 	// Creates the Tiles that make up the Chessboard
-	void createChessboard();
+	void CreateChessboard();
 
 	// Prepares the Chessboard by placing each ChessPiece
-	// in the correct position
-	void prepareChessboard();
+	// in the correct Position
+	void PrepareChessboard();
 
-	// Removes the ChessPiece at the given position from
+	// Removes the ChessPiece at the given Position from
 	// the Chessboard. Returns a pointer to the removed
 	// ChessPiece. Does nothing and returns nullptr if
-	// there's no ChessPiece at the given position.
-	AChessPiece* removeChessPiece(FVector2D position);
+	// there's no ChessPiece at the given Position.
+	AChessPiece* RemoveChessPiece(FVector2D Position);
 
 	// Puts a new ChessPiece of the given PieceType and
-	// PieceColor at the given position, returning a pointer
+	// PieceColor at the given Position, returning a pointer
 	// to the old ChessPiece, or nullptr if there was none,
 	// without checking if the move is legal!!
-	AChessPiece* putChessPiece(PieceType type, PieceColor color, FVector2D position);
+	AChessPiece* PutChessPiece(PieceType type,
+		PieceColor color, FVector2D Position);
 
-	// Moves a ChessPiece from one position to another,
+	// Moves a ChessPiece from one Position to another,
 	// returning a pointer to the old ChessPiece, or nullptr
 	// if there was none, without checking if the move is legal!!
-	AChessPiece* moveChessPiece(FVector2D oldPosition, FVector2D newPosition);
+	AChessPiece* moveChessPiece(FVector2D oldPosition,
+		FVector2D newPosition);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	// TODO: may not be useful
 	// Map that stores the Tiles that make up the Chessboard
 	UPROPERTY(Transient)
 	TMap<FVector2D, ATile*> TileMap;
@@ -63,5 +64,11 @@ private:
 
 	// Scale factor of the length of one Tile
 	const double TileSize;
+	
+	// Subclasses for black and white tiles
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ATile> BlackTileClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<ATile> WhiteTileClass;
 
 };

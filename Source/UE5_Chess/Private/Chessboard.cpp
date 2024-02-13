@@ -1,11 +1,11 @@
 #include "Chessboard.h"
 
 // Sets default values
-AChessboard::AChessboard()
+AChessboard::AChessboard(double TileScale, double ChessPieceScale)
+	: TileSize{TileScale}, ChessPieceSize{ChessPieceScale}
 {
  	// Set this actor NOT to call Tick() every frame.
 	PrimaryActorTick.bCanEverTick = false;
-
 }
 
 AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position) const
@@ -38,7 +38,7 @@ void AChessboard::PrepareChessboard()
 	TArray<FVector2D> Positions;
 	ChessPieceMap.GetKeys(Positions);
 	for (FVector2D Position : Positions) {
-		ChessPieceMap[Position]->Destroy();
+		RemoveChessPiece(Position);
 	}
 
 	// Put ChessPieces on the Chessboard
@@ -75,45 +75,41 @@ void AChessboard::PrepareChessboard()
 	PutChessPiece(PieceType::QUEEN, PieceColor::BLACK, FVector2D(4, 0));
 }
 
-AChessPiece* AChessboard::RemoveChessPiece(FVector2D Position)
+bool AChessboard::RemoveChessPiece(FVector2D Position)
 {
 	if (!ChessPieceMap.Contains(Position))
-		return nullptr;
+		return true;
 
 	AChessPiece* x = ChessPieceMap[Position];
 	ChessPieceMap.Remove(Position);
-	return x;
+	return x->Destroy();
 }
 
 AChessPiece* AChessboard::PutChessPiece(PieceType Type, PieceColor Color, FVector2D Position)
 {
-	AChessPiece* OldChessPiece;
-	if (!ChessPieceMap.Contains(Position))
-		OldChessPiece = nullptr;
-	
-	OldChessPiece = ChessPieceMap[Position];
-	ChessPieceMap.Remove(Position);
+	if (ChessPieceMap.Contains(Position)) return nullptr;
 
-	// Add ChessPiece in the newPosition
-	// TODO: Create a new ChessPiece
-	AChessPiece* NewChessPiece;
-	ChessPieceMap.Add(Position, NewChessPiece);
+	// Spawn ChessPiece in the scene
+	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
+		Cast<UClass>(ColorTypeToClass(Color, Type)),
+		FVector(Position[0], Position[1], 0) * ChessPieceSize,
+		FRotator::ZeroRotator
+	);
 
-	return OldChessPiece;
+	// Add ChessPiece to ChessPieceMap
+	ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
+	ChessPieceMap.Add(Position, ChessPiece);
 }
 
-AChessPiece* AChessboard::moveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
+bool AChessboard::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 {
-	// check that there is a ChessPiece in the oldPosition
-	if (!ChessPieceMap.Contains(OldPosition))
-		return;
+	if (!ChessPieceMap.Contains(OldPosition)) return true;
+	if (ChessPieceMap.Contains(NewPosition)) return false;
 
-	// Remove ChessPiece from oldPosition
-	AChessPiece* OldChessPiece = ChessPieceMap[OldPosition];
-	ChessPieceMap.Remove(OldPosition);
+	// TODO: Remove ChessPiece from oldPosition
 
-	// Add ChessPiece in the newPosition
-	ChessPieceMap.Add(NewPosition, OldChessPiece);
+	// TODO: Add ChessPiece in the newPosition
+	return false;
 }
 
 
@@ -124,6 +120,49 @@ void AChessboard::BeginPlay()
 
 	CreateChessboard();
 	PrepareChessboard();
+}
+
+TSubclassOf<AChessPiece>* AChessboard::ColorTypeToClass(PieceColor Color, PieceType Type)
+{
+	if (Color == PieceColor::BLACK)
+	{
+		switch (Type) {
+		case PieceType::BISHOP:
+			return &BlackBishopClass;
+		case PieceType::KNIGHT:
+			return &BlackKnightClass;
+		case PieceType::KING:
+			return &BlackKingClass;
+		case PieceType::QUEEN:
+			return &BlackQueenClass;
+		case PieceType::PAWN:
+			return &BlackPawnClass;
+		case PieceType::ROOK:
+			return &BlackRookClass;
+		default:
+			return nullptr;
+		}
+	}
+	if (Color == PieceColor::WHITE)
+	{
+		switch (Type) {
+		case PieceType::BISHOP:
+			return &WhiteBishopClass;
+		case PieceType::KNIGHT:
+			return &WhiteKnightClass;
+		case PieceType::KING:
+			return &WhiteKingClass;
+		case PieceType::QUEEN:
+			return &WhiteQueenClass;
+		case PieceType::PAWN:
+			return &WhitePawnClass;
+		case PieceType::ROOK:
+			return &WhiteRookClass;
+		default:
+			return nullptr;
+		}
+	}
+	return nullptr;
 }
 
 /*

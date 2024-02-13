@@ -1,6 +1,6 @@
 #include "Chessboard.h"
 
-// Sets default values
+
 AChessboard::AChessboard(double TileScale, double ChessPieceScale)
 	: TileSize{TileScale}, ChessPieceSize{ChessPieceScale}
 {
@@ -106,20 +106,19 @@ bool AChessboard::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 	if (!ChessPieceMap.Contains(OldPosition)) return true;
 	if (ChessPieceMap.Contains(NewPosition)) return false;
 
-	// TODO: Remove ChessPiece from oldPosition
+	// Update entry from ChessPieceMap
+	ChessPieceMap[NewPosition] = ChessPieceMap[OldPosition];
+	ChessPieceMap.Remove(OldPosition);
 
-	// TODO: Add ChessPiece in the newPosition
-	return false;
-}
-
-
-// Called when the game starts or when spawned
-void AChessboard::BeginPlay()
-{
-	Super::BeginPlay();
-
-	CreateChessboard();
-	PrepareChessboard();
+	// Move Actor in the new position of the scene
+	FHitResult temp; // needed by K2_SetActorLocation, will get ignored
+	ChessPieceMap[NewPosition]->K2_SetActorLocation(
+		FVector(NewPosition[0], NewPosition[1], 0.1) * TileSize,
+		false,
+		temp,
+		true
+	);
+	return true;
 }
 
 TSubclassOf<AChessPiece>* AChessboard::ColorTypeToClass(PieceColor Color, PieceType Type)
@@ -165,11 +164,11 @@ TSubclassOf<AChessPiece>* AChessboard::ColorTypeToClass(PieceColor Color, PieceT
 	return nullptr;
 }
 
-/*
-// Called every frame
-void AChessboard::Tick(float DeltaTime)
+void AChessboard::BeginPlay()
 {
-	Super::Tick(DeltaTime);
+	Super::BeginPlay();
 
+	CreateChessboard();
+	PrepareChessboard();
 }
-*/
+

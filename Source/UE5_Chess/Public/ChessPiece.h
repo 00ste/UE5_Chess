@@ -8,7 +8,7 @@
 
 UENUM()
 enum PieceColor : uint32 {
-	BLACK, WHITE, NONE
+	WHITE = 0, BLACK = 1, NONE = 2
 };
 
 UENUM()

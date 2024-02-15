@@ -2,9 +2,11 @@
 
 
 #include "CH_GameMode.h"
+#include "ChessPiece.h"
 
 
 ACH_GameMode::ACH_GameMode()
+	: TileSize{1.0}, ChessPieceSize{0.9}
 {
 	// TODO:
 	// PlayerControllerClass = ATTT_PlayerController::StaticClass();
@@ -19,14 +21,14 @@ void ACH_GameMode::BeginPlay()
 
 	// TODO: Init players and add to list
 
-	if (ChessboardClass != nullptr)
+	if (ChessboardClass == nullptr) 
 	{
-		Chessboard = GetWorld()->SpawnActor<AChessboard>(ChessboardClass);
+		MissingClass(0);
+		
 	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Chessboard is null"));
-	}
+
+	Chessboard = GetWorld()->SpawnActor<AChessboard>(ChessboardClass);
+	Chessboard->CreateChessboard(TileSize);
 	
 	Players[CurrentPlayer]->OnTurn();
 }
@@ -35,6 +37,48 @@ void ACH_GameMode::TurnNextPlayer()
 {
 	CurrentPlayer = (CurrentPlayer + 1) % 2;
 	Players[CurrentPlayer]->OnTurn();
+}
+
+void ACH_GameMode::ShowLegalMoves(FVector2D Position)
+{
+	AChessPiece* Piece = ChessPieceMap[Position];
+	if (Piece == nullptr) return;
+
+	switch (Piece->GetType())
+	{
+		// PAWN
+		// - Moves forward by 1
+		// - Moves forward by 2 if it's at the start row
+		// - Moves forward-diagonally if there's an opposing ChessPiece
+	case PieceType::PAWN:
+		break;
+		// ROOK
+		// - moves horizontally and vertically anywhere, even if there's
+		//   an opposing ChessPiece
+	case PieceType::ROOK:
+		break;
+		// BISHOP
+		// - moves diagonally anywhere, even if there's
+		//   an opposing ChessPiece
+	case PieceType::BISHOP:
+		break;
+		// KNIGHT
+			// - moves in an L-shape, even if there's an opposing ChessPiece
+	case PieceType::KNIGHT:
+		break;
+		// QUEEN
+		// - moves horizontally, vertically and diagonally anywhere, even if
+		//   there's an opposing ChessPiece
+	case PieceType::QUEEN:
+		break;
+		// QUEEN
+		// - moves horizontally, vertically and diagonally by one tile, even
+		//   if there's an opposing ChessPiece, however his moves are limited
+		//   during a check
+	case PieceType::KING:
+		break;
+
+	}
 }
 
 void ACH_GameMode::PrepareChessboard()
@@ -95,11 +139,19 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	if (ChessPieceMap.Contains(Position)) return nullptr;
 
 	// Spawn ChessPiece in the scene
+	UClass* PieceClass = Cast<UClass>(ColorTypeToClass(Color, Type));
+	if (PieceClass == nullptr)
+	{
+		MissingClass(1);
+	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
-		Cast<UClass>(ColorTypeToClass(Color, Type)),
+		PieceClass,
 		FVector(Position[0], Position[1], 0) * ChessPieceSize,
 		FRotator::ZeroRotator
 	);
+
+	// Set up ChessPiece
+	ChessPiece->Setup(Type, Color);
 
 	// Add ChessPiece to ChessPieceMap
 	ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
@@ -167,4 +219,10 @@ TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, Piece
 		}
 	}
 	return nullptr;
+}
+
+// TODO: Handle this better
+void ACH_GameMode::MissingClass(uint32 ErrorCode)
+{
+	UE_LOG(LogTemp, Error, TEXT("Missing class error! Code: ", ErrorCode));
 }

@@ -24,7 +24,7 @@ public:
 	AChessPiece* GetChessPieceAt(FVector2D Position) const;
 
 	// Creates the Tiles that make up the Chessboard
-	void CreateChessboard();
+	void CreateChessboard(double TileSize);
 
 protected:
 	// Called when the game starts or when spawned
@@ -34,11 +34,6 @@ private:
 	// Map that stores the Tiles that make up the Chessboard
 	UPROPERTY(Transient)
 	TMap<FVector2D, ATile*> TileMap;
-
-	// Scale factor of the side length of one Tile
-	const double TileSize;
-	// Scale factor of the diameter of one ChessPiece
-	const double ChessPieceSize;
 	
 	// Subclasses for black and white tiles
 	UPROPERTY(EditDefaultsOnly)

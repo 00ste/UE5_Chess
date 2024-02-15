@@ -18,7 +18,7 @@ UCLASS()
 class UE5_CHESS_API ACH_GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
 public:
 	// Sets default values for this actor's properties
 	ACH_GameMode();
@@ -54,6 +54,9 @@ public:
 	// and calls that player's OnTurn() method
 	void TurnNextPlayer();
 
+
+	void ShowLegalMoves(FVector2D Position);
+
 protected:
 	// Initializes the two players and the Chessboard and
 	// starts the game
@@ -68,17 +71,20 @@ private:
 	uint32 CurrentPlayer;
 
 	AChessboard* Chessboard;
-		
+
+	// Scale factors
+	const double TileSize;
+	const double ChessPieceSize;
+
 	// Map that stores the ChessPieces on the Chessboard
 	UPROPERTY(Transient)
 	TMap<FVector2D, AChessPiece*> ChessPieceMap;
 
-	// Chessboard subclass
+	// Subclasses
+	//Chessboard
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessboard> ChessboardClass;
-
-	// Subclasses for every chess piece
-	// Blacks
+	// Black ChessPieces
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessPiece> BlackBishopClass;
 	UPROPERTY(EditDefaultsOnly)
@@ -91,7 +97,7 @@ private:
 	TSubclassOf<AChessPiece> BlackPawnClass;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessPiece> BlackRookClass;
-	// Whites
+	// White ChessPieces
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessPiece> WhiteBishopClass;
 	UPROPERTY(EditDefaultsOnly)
@@ -108,4 +114,7 @@ private:
 	// Utility function to map a PieceColor and PieceType
 	// to a UClass* of a ChessPiece
 	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
+
+	// TODO: handle this better
+	void MissingClass(uint32 ErrorCode);
 };

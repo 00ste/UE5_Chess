@@ -6,9 +6,25 @@
 // Sets default values
 AChessPiece::AChessPiece()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+ 	// Set this actor NOT to call Tick() every frame.
+	PrimaryActorTick.bCanEverTick = false;
 
+}
+
+PieceType AChessPiece::GetType() const
+{
+	return Type;
+}
+
+PieceColor AChessPiece::GetColor() const
+{
+	return Color;
+}
+
+void AChessPiece::Setup(PieceType Type, PieceColor Color)
+{
+	this->Type = Type;
+	this->Color = Color;
 }
 
 // Called when the game starts or when spawned
@@ -18,10 +34,4 @@ void AChessPiece::BeginPlay()
 	
 }
 
-// Called every frame
-void AChessPiece::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 

@@ -25,12 +25,20 @@ public:
 	// Sets default values for this actor's properties
 	AChessPiece();
 
+	// Getters
+	PieceType GetType() const;
+	PieceColor GetColor() const;
+
+	// Initialisation function (passing parameters in
+	// constructor or BeginPlay isn't allowed)
+	void Setup(PieceType Type, PieceColor Color);
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
+private:
+	PieceType Type;
+	PieceColor Color;
 };

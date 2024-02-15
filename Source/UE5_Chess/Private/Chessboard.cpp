@@ -15,8 +15,13 @@ AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position) const
 	return nullptr;
 }
 
-void AChessboard::CreateChessboard()
+void AChessboard::CreateChessboard(double TileSize)
 {
+	if (WhiteTileClass == nullptr || BlackTileClass == nullptr)
+	{
+		// TODO: handle this better
+		UE_LOG(LogTemp, Error, TEXT("Missing Tile Class!!"));
+	}
 	for (int32 x = 0; x < 8; x++)
 	{
 		for (int32 y = 0; y < 8; y++)

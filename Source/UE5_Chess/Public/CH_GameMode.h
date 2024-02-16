@@ -7,6 +7,7 @@
 #include "CH_PlayerInterface.h"
 #include "ChessPiece.h"
 #include "Chessboard.h"
+#include "Indicator.h"
 #include "CH_GameMode.generated.h"
 
 UENUM()
@@ -110,10 +111,23 @@ private:
 	TSubclassOf<AChessPiece> WhitePawnClass;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessPiece> WhiteRookClass;
+	// Indicators
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AIndicator> MoveIndicatorClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AIndicator> CaptureIndicatorClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AIndicator> PromoteIndicatorClass;
 
 	// Utility function to map a PieceColor and PieceType
 	// to a UClass* of a ChessPiece
 	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
+
+	// Spawn Indicator at given end position, checking the bounds
+	// of the Chessboard and checking for collisions with other
+	// ChessPieces, preventing movement or allowing capture
+	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
+	AIndicator* SpawnIndicatorSafe(FVector2D StartPosition, FVector2D EndPosition);
 
 	// TODO: handle this better
 	void MissingClass(uint32 ErrorCode);

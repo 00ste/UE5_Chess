@@ -55,7 +55,18 @@ public:
 	// and calls that player's OnTurn() method
 	void TurnNextPlayer();
 
+	// Recursively explores a line of Tiles starting from Position
+	// along Direction, and stops either when an obstacle is found
+	// or when MaxLength Tiles have been explored. The Tiles' positions
+	// are all appended to Moves. If CanCapture is true, a Tile that
+	// contains a ChessPiece owned by the opponent will count as a
+	// legal move (capturing).
+	void ExploreDirection(FVector2D Position, FVector2D Direction,
+		uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves,
+		PieceColor PlayerColor);
 
+	// Spawns Indicators on the Chessboard that indicate
+	// where a piece at Position can be moved by the player
 	void ShowLegalMoves(FVector2D Position);
 
 protected:
@@ -123,11 +134,15 @@ private:
 	// to a UClass* of a ChessPiece
 	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
 
+	/*
 	// Spawn Indicator at given end position, checking the bounds
 	// of the Chessboard and checking for collisions with other
 	// ChessPieces, preventing movement or allowing capture
 	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
 	AIndicator* SpawnIndicatorSafe(FVector2D StartPosition, FVector2D EndPosition);
+	*/
+
+	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
 
 	// TODO: handle this better
 	void MissingClass(uint32 ErrorCode);

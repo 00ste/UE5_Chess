@@ -14,8 +14,8 @@
 // A tile can either be black or white
 UENUM()
 enum TileColor : uint32 {
-	BLACK = 0,
-	WHITE = 1
+	TBLACK = 0,
+	TWHITE = 1
 };
 
 

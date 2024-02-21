@@ -16,12 +16,7 @@ class UE5_CHESS_API AChessboard : public AActor
 	
 public:	
 	// Sets default values for this actor's properties
-	AChessboard(double TileScale, double ChessPieceScale);
-
-	// Gets the ChessPiece object at the given Position.
-	// Returns a pointer to the ChessPiece, or nullptr if
-	// the Tile at the given Position is empty.
-	AChessPiece* GetChessPieceAt(FVector2D Position) const;
+	AChessboard();
 
 	// Creates the Tiles that make up the Chessboard
 	void CreateChessboard(double TileSize);

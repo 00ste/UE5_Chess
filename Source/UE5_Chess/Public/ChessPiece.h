@@ -8,12 +8,12 @@
 
 UENUM()
 enum PieceColor : uint32 {
-	WHITE = 0, BLACK = 1, NONE = 2
+	PWHITE, PBLACK, PCNONE
 };
 
 UENUM()
 enum PieceType : uint32 {
-	BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK, NONE
+	BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK, PTNONE
 };
 
 UCLASS()

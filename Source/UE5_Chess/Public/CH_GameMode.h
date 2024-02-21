@@ -10,8 +10,6 @@
 #include "Indicator.h"
 #include "CH_GameMode.generated.h"
 
-UENUM()
-
 /**
  * 
  */
@@ -68,6 +66,8 @@ public:
 	// Spawns Indicators on the Chessboard that indicate
 	// where a piece at Position can be moved by the player
 	void ShowLegalMoves(FVector2D Position);
+
+	
 
 protected:
 	// Initializes the two players and the Chessboard and
@@ -145,5 +145,5 @@ private:
 	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
 
 	// TODO: handle this better
-	void MissingClass(uint32 ErrorCode);
+	void MissingClass();
 };

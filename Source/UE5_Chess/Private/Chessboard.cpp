@@ -1,18 +1,10 @@
 #include "Chessboard.h"
 
 
-AChessboard::AChessboard(double TileScale, double ChessPieceScale)
-	: TileSize{TileScale}, ChessPieceSize{ChessPieceScale}
+AChessboard::AChessboard()
 {
  	// Set this actor NOT to call Tick() every frame.
 	PrimaryActorTick.bCanEverTick = false;
-}
-
-AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position) const
-{
-	if (ChessPieceMap.Contains(Position))
-		return ChessPieceMap[Position];
-	return nullptr;
 }
 
 void AChessboard::CreateChessboard(double TileSize)
@@ -41,7 +33,5 @@ void AChessboard::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CreateChessboard();
-	PrepareChessboard();
 }
 

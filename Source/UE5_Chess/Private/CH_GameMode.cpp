@@ -23,7 +23,7 @@ void ACH_GameMode::BeginPlay()
 
 	if (ChessboardClass == nullptr) 
 	{
-		MissingClass(0);
+		MissingClass();
 		
 	}
 
@@ -52,7 +52,7 @@ void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D Direction,
 	if (TargetPiece == nullptr)
 	{
 		Moves->Add(TargetPosition);
-		ExploreDirection(TargetPosition, Direction, MaxLength - 1, CanCapture, Moves);
+		ExploreDirection(TargetPosition, Direction, MaxLength - 1, CanCapture, Moves, PlayerColor);
 	}
 	else {
 		// If TargetPosition is occupied by a ChessPiece, it can be captured only if
@@ -87,7 +87,7 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 	}
 
 	if (IndicatorClass == nullptr)
-		MissingClass(3);
+		MissingClass();
 
 	AIndicator* Indicator = GetWorld()->SpawnActor<AIndicator>(
 		IndicatorClass,
@@ -108,8 +108,8 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 	// Get the ChessPiece and check that it's valid
 	AChessPiece* Piece = *ChessPieceMap.Find(Position);
 	if (Piece == nullptr) return;
-	if (Piece->GetColor() == PieceColor::NONE) return;
-	if (Piece->GetType() == PieceType::NONE) return;
+	if (Piece->GetColor() == PieceColor::PCNONE) return;
+	if (Piece->GetType() == PieceType::PTNONE) return;
 
 	// This will contain all legal moves stored FVector2D
 	// objects representing the end position of the move
@@ -139,7 +139,7 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		// variable is needed.
 		// The value of the variable represents the color:
 		// WHITE -> 0, BLACK, 1
-		uint32 ColorIndex = Piece->GetColor() == PieceColor::WHITE ? 0 : 1;
+		uint32 ColorIndex = Piece->GetColor() == PieceColor::PWHITE ? 0 : 1;
 
 		// If the Pawn is at the start position, it can move by 2 Tiles
 		uint32 MaxLength = Position[1] == 6 - 5 * ColorIndex ? 2 : 1;
@@ -270,35 +270,35 @@ void ACH_GameMode::PrepareChessboard()
 	// Put ChessPieces on the Chessboard
 	// Pawns
 	for (uint32 i = 0; i < 8; i++) {
-		PutChessPiece(PieceType::PAWN, PieceColor::BLACK, FVector2D(i, 1));
-		PutChessPiece(PieceType::PAWN, PieceColor::WHITE, FVector2D(i, 6));
+		PutChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 1));
+		PutChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 6));
 	}
 
 	// Rooks
-	PutChessPiece(PieceType::ROOK, PieceColor::BLACK, FVector2D(0, 0));
-	PutChessPiece(PieceType::ROOK, PieceColor::BLACK, FVector2D(7, 0));
-	PutChessPiece(PieceType::ROOK, PieceColor::WHITE, FVector2D(0, 7));
-	PutChessPiece(PieceType::ROOK, PieceColor::WHITE, FVector2D(7, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 0));
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 0));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 7));
 
 	// Bishops
-	PutChessPiece(PieceType::BISHOP, PieceColor::BLACK, FVector2D(1, 0));
-	PutChessPiece(PieceType::BISHOP, PieceColor::BLACK, FVector2D(6, 0));
-	PutChessPiece(PieceType::BISHOP, PieceColor::WHITE, FVector2D(1, 7));
-	PutChessPiece(PieceType::BISHOP, PieceColor::WHITE, FVector2D(6, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 0));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 0));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 7));
 
 	// Knights
-	PutChessPiece(PieceType::KNIGHT, PieceColor::BLACK, FVector2D(2, 0));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::BLACK, FVector2D(5, 0));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::WHITE, FVector2D(2, 7));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::WHITE, FVector2D(5, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 0));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 0));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 7));
 
 	// Queens
-	PutChessPiece(PieceType::QUEEN, PieceColor::BLACK, FVector2D(3, 0));
-	PutChessPiece(PieceType::QUEEN, PieceColor::WHITE, FVector2D(3, 7));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 0));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 7));
 
 	// Kings
-	PutChessPiece(PieceType::QUEEN, PieceColor::WHITE, FVector2D(4, 7));
-	PutChessPiece(PieceType::QUEEN, PieceColor::BLACK, FVector2D(4, 0));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(4, 7));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(4, 0));
 }
 
 bool ACH_GameMode::RemoveChessPiece(FVector2D Position)
@@ -319,7 +319,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	UClass* PieceClass = Cast<UClass>(ColorTypeToClass(Color, Type));
 	if (PieceClass == nullptr)
 	{
-		MissingClass(1);
+		MissingClass();
 	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
 		PieceClass,
@@ -357,7 +357,7 @@ bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 
 TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, PieceType Type)
 {
-	if (Color == PieceColor::BLACK)
+	if (Color == PieceColor::PBLACK)
 	{
 		switch (Type) {
 		case PieceType::BISHOP:
@@ -376,7 +376,7 @@ TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, Piece
 			return nullptr;
 		}
 	}
-	if (Color == PieceColor::WHITE)
+	if (Color == PieceColor::PWHITE)
 	{
 		switch (Type) {
 		case PieceType::BISHOP:
@@ -399,7 +399,7 @@ TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, Piece
 }
 
 // TODO: Handle this better
-void ACH_GameMode::MissingClass(uint32 ErrorCode)
+void ACH_GameMode::MissingClass()
 {
-	UE_LOG(LogTemp, Error, TEXT("Missing class error! Code: ", ErrorCode));
+	UE_LOG(LogTemp, Error, TEXT("Missing class error"));
 }

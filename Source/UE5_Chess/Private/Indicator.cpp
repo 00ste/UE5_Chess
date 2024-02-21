@@ -11,9 +11,9 @@ AIndicator::AIndicator()
 
 }
 
-void AIndicator::Setup(MoveType Type, FVector2D StartPos, FVector2D EndPos)
+void AIndicator::Setup(MoveType Type_, FVector2D StartPos, FVector2D EndPos)
 {
-	this->Type = Type;
+	Type = Type_;
 	StartPosition = StartPos;
 	EndPosition = EndPos;
 }

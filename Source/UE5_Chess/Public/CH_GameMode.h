@@ -85,12 +85,18 @@ private:
 	AChessboard* Chessboard;
 
 	// Scale factors
-	const double TileSize;
-	const double ChessPieceSize;
+	double TileSize;
+	double ChessPieceSize;
 
 	// Map that stores the ChessPieces on the Chessboard
 	UPROPERTY(Transient)
 	TMap<FVector2D, AChessPiece*> ChessPieceMap;
+
+	// Array of Indicators that will show all possible moves
+	// for the currently selected ChessPiece
+	UPROPERTY(Transient)
+	TArray<AIndicator*> Indicators;
+
 
 	// Subclasses
 	//Chessboard

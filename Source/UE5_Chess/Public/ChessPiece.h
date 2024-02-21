@@ -31,7 +31,7 @@ public:
 
 	// Initialisation function (passing parameters in
 	// constructor or BeginPlay isn't allowed)
-	void Setup(PieceType Type, PieceColor Color);
+	void Setup(PieceType Type_, PieceColor Color_);
 
 
 protected:

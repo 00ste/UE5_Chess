@@ -21,10 +21,10 @@ PieceColor AChessPiece::GetColor() const
 	return Color;
 }
 
-void AChessPiece::Setup(PieceType Type, PieceColor Color)
+void AChessPiece::Setup(PieceType Type_, PieceColor Color_)
 {
-	this->Type = Type;
-	this->Color = Color;
+	Type = Type_;
+	Color = Color_;
 }
 
 // Called when the game starts or when spawned

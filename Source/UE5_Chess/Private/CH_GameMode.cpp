@@ -6,7 +6,7 @@
 
 
 ACH_GameMode::ACH_GameMode()
-	: TileSize{1.0}, ChessPieceSize{0.9}
+	: TileSize(1.0), ChessPieceSize(0.9)
 {
 	// TODO:
 	// PlayerControllerClass = ATTT_PlayerController::StaticClass();
@@ -105,6 +105,14 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 
 void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 {
+	// Destroy all current Indicators first
+	// TODO: Not sure if this is the right way to do it
+	for (AIndicator* x : Indicators)
+	{
+		Indicators.Remove(x);
+		x->Destroy();
+	}
+
 	// Get the ChessPiece and check that it's valid
 	AChessPiece* Piece = *ChessPieceMap.Find(Position);
 	if (Piece == nullptr) return;
@@ -115,147 +123,109 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 	// objects representing the end position of the move
 	TArray<FVector2D> Moves;
 
-	// Common exploration directions used by multiple
-	// ChessPieces
-	TArray<FVector2D> AxisDirections = {
-			FVector2D(1, 0), FVector2D(-1, 0),
-			FVector2D(0, 1), FVector2D(0, -1)
-	};
-	TArray<FVector2D> DiagDirections = {
-			FVector2D(1, 1), FVector2D(-1, -1),
-			FVector2D(-1, 1), FVector2D(1, -1)
-	};
-	TArray<FVector2D> AllDirections = {
-		FVector2D(1, 0), FVector2D(-1, 0),
-		FVector2D(0, 1), FVector2D(0, -1),
-		FVector2D(1, 1), FVector2D(-1, -1),
-		FVector2D(-1, 1), FVector2D(1, -1)
-	};
-	switch (Piece->GetType()) {
-	case PieceType::PAWN:
+	// Pawn is handled differently from all other pieces:
+	// - it can only move in one direction
+	// - its capture pattern is different from its movement
+	//   pattern
+	// - it can be promoted
+	// - TODO: can do an "en-passant"
+	if (Piece->GetType() == PieceType::PAWN)
+	{
 		// Since a Pawn can only move forwards, its possible moves
-		// depend on its color! In order to avoid writing two different
-		// routines for each color or using many if-statements, this
-		// variable is needed.
-		// The value of the variable represents the color:
-		// WHITE -> 0, BLACK, 1
+		// will depend on its color. ColorIndex = 0 represents a WHITE
+		// Pawn and ColorIndex = 1 represents a BLACK Pawn. This variable
+		// parametrizes values that would otherwise need if-statements to
+		// be determined.
 		uint32 ColorIndex = Piece->GetColor() == PieceColor::PWHITE ? 0 : 1;
+		uint32 yOffset = 2 * ColorIndex + 1;
 
-		// If the Pawn is at the start position, it can move by 2 Tiles
+		// Movement
+		// If the pawn is at the start position (which is a function of the
+		// ColorIndex), it can move by 2 tiles instead of 1
 		uint32 MaxLength = Position[1] == 6 - 5 * ColorIndex ? 2 : 1;
 		ExploreDirection(
 			Position,
-			FVector2D(0, 2 * ColorIndex + 1),
+			FVector2D(0, yOffset),
 			MaxLength,
 			false,
 			&Moves,
 			Piece->GetColor()
 		);
 
-		// Capture
-		for (uint32 i = -1; i <= 1; i += 2)
+		// Capture can't be added using ExploreDirection, so it's added
+		// manually instead
+		for (uint32 xOffset = -1; xOffset <= 1; xOffset += 2)
 		{
-			ExploreDirection(
-				Position,
-				FVector2D(i, 2 * ColorIndex + 1),
-				1,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
+			FVector2D TargetPos = Position + FVector2D(xOffset, yOffset);
+			AChessPiece* Target = *ChessPieceMap.Find(TargetPos);
+			if (Target != nullptr && Target->GetColor() != Piece->GetColor())
+			{
+				Moves.Add(TargetPos);
+			}
 		}
+	}
 
-		break;
+	uint32 MaxLength = 8;
+	TArray<FVector2D> Directions;
 
-	case PieceType::ROOK:
-		// Rook moves horizontally and vertically (AxisDirections)
-		for (FVector2D Direction : AxisDirections)
-		{
-			ExploreDirection(
-				Position,
-				Direction,
-				8,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
-		}
+	// Pieces that can move diagonally
+	if (Piece->GetType() == PieceType::BISHOP
+		|| Piece->GetType() == PieceType::QUEEN
+		|| Piece->GetType() == PieceType::KING)
+	{
+		Directions.Add(FVector2D(1, 1));
+		Directions.Add(FVector2D(1, -1));
+		Directions.Add(FVector2D(-1, 1));
+		Directions.Add(FVector2D(-1, -1));
+	}
 
-		break;
+	// Pieces that can move horizontally and vertically
+	if (Piece->GetType() == PieceType::ROOK
+		|| Piece->GetType() == PieceType::QUEEN
+		|| Piece->GetType() == PieceType::KING)
+	{
+		Directions.Add(FVector2D(-1, 0));
+		Directions.Add(FVector2D(0, -1));
+		Directions.Add(FVector2D(1, 0));
+		Directions.Add(FVector2D(0, 1));
+	}
 
-	case PieceType::BISHOP:
-		// Bishop moves diagonally (DiagDirections)
-		for (FVector2D Direction : DiagDirections)
-		{
-			ExploreDirection(
-				Position,
-				Direction,
-				8,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
-		}
+	// Knight
+	if (Piece->GetType() == PieceType::KNIGHT)
+	{
+		Directions.Add(FVector2D(2, 1));
+		Directions.Add(FVector2D(-2, 1));
+		Directions.Add(FVector2D(2, -1));
+		Directions.Add(FVector2D(-2, -1));
+		Directions.Add(FVector2D(1, 2));
+		Directions.Add(FVector2D(-1, 2));
+		Directions.Add(FVector2D(1, -2));
+		Directions.Add(FVector2D(-1, -2));
+	}
 
-		break;
-
-	case PieceType::QUEEN:
-		// Queen moves in all directions
-		for (FVector2D Direction : AllDirections)
-		{
-			ExploreDirection(
-				Position,
-				Direction,
-				8,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
-		}
-
-		break;
-
-		// TODO: Check will limit the possible moves
-	case PieceType::KING:
-		// King moves in all directions by 1
-		for (FVector2D Direction : AllDirections)
-		{
-			ExploreDirection(
-				Position,
-				Direction,
-				1,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
-		}
-
-	case PieceType::KNIGHT:
-		// Knight moves in L-shaped directions (by 1)
-		TArray<FVector2D> KnightDirections = {
-			FVector2D(1, 2), FVector2D(-1, -2),
-			FVector2D(1, -2), FVector2D(-1, 2),
-			FVector2D(2, 1), FVector2D(-2, -1),
-			FVector2D(2, -1), FVector2D(-2, 1)
-		};
-
-		for (FVector2D Direction : KnightDirections)
-		{
-			ExploreDirection(
-				Position,
-				Direction,
-				1,
-				true,
-				&Moves,
-				Piece->GetColor()
-			);
-		}
-
-		break;
+	// Pieces that can only do 1 step in a given
+	// direction
+	if (Piece->GetType() == PieceType::KNIGHT
+		|| Piece->GetType() == PieceType::KING)
+	{
+		MaxLength = 1;
 	}
 	
+	// Generate moves for every direction
+	for (FVector2D Direction : Directions) {
+		ExploreDirection(
+			Position,
+			Direction,
+			MaxLength,
+			true,
+			&Moves,
+			Piece->GetColor()
+		);
+	}
+	
+	// Spawn the Indicators
 	for (FVector2D EndPosition : Moves)
-		SpawnIndicator(Position, EndPosition);
+		Indicators.Add(SpawnIndicator(Position, EndPosition));
 }
 
 void ACH_GameMode::PrepareChessboard()
@@ -333,6 +303,8 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	// Add ChessPiece to ChessPieceMap
 	ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
 	ChessPieceMap.Add(Position, ChessPiece);
+
+	return ChessPiece;
 }
 
 bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)

@@ -22,4 +22,6 @@ class UE5_CHESS_API ICH_PlayerInterface
 
 public:
 	virtual void OnTurn() = 0;
+	virtual void OnWin() = 0;
+	virtual void OnLose() = 0;
 };

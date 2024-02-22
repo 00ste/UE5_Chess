@@ -33,6 +33,9 @@ public:
 	// constructor or BeginPlay isn't allowed)
 	void Setup(PieceType Type_, PieceColor Color_);
 
+	UFUNCTION()
+	void SelfDestroy();
+
 
 protected:
 	// Called when the game starts or when spawned

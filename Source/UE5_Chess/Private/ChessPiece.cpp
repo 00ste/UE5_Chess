@@ -2,6 +2,7 @@
 
 
 #include "ChessPiece.h"
+#include "CH_GameMode.h"
 
 // Sets default values
 AChessPiece::AChessPiece()
@@ -27,11 +28,19 @@ void AChessPiece::Setup(PieceType Type_, PieceColor Color_)
 	Color = Color_;
 }
 
+void AChessPiece::SelfDestroy()
+{
+	Destroy();
+}
+
 // Called when the game starts or when spawned
 void AChessPiece::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	// TODO: call this from gamemode when adding the ChessPieces, can't do it here
+	// because the Chessboard pointer is not public.
+	// ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	// GameMode->Chessboard->OnResetEvent.AddDynamic(this, &AChessPiece::SelfDestroy());
 }
 
 

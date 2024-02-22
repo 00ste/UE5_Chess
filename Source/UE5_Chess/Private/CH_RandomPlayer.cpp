@@ -32,3 +32,15 @@ void ACH_RandomPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 }
 
+void ACH_RandomPlayer::OnTurn()
+{
+}
+
+void ACH_RandomPlayer::OnWin()
+{
+}
+
+void ACH_RandomPlayer::OnLose()
+{
+}
+

@@ -3,14 +3,19 @@
 
 #include "CH_GameMode.h"
 #include "ChessPiece.h"
+#include "CH_PlayerController.h"
+#include "CH_HumanPlayer.h"
+#include "CH_RandomPlayer.h"
+#include "EngineUtils.h"
 
 
 ACH_GameMode::ACH_GameMode()
-	: TileSize(1.0), ChessPieceSize(0.9)
+	//: TileSize(1.0), ChessPieceSize(0.9)
 {
-	// TODO:
-	// PlayerControllerClass = ATTT_PlayerController::StaticClass();
-	// DefaultPawnClass = ATTT_HumanPlayer::StaticClass();
+	PlayerControllerClass = ACH_PlayerController::StaticClass();
+	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
+	TileSize = 1.0;
+	ChessPieceSize = 0.9;
 }
 
 void ACH_GameMode::BeginPlay()
@@ -19,16 +24,43 @@ void ACH_GameMode::BeginPlay()
 
 	IsGameOver = false;
 
-	// TODO: Init players and add to list
+	// Init players and add to list
+	FVector CameraPosition = {
+		4 * TileSize,
+		4 * TileSize,
+		1000.0f
+	};
+	ACH_HumanPlayer* HumanPlayer = Cast<ACH_HumanPlayer>(*TActorIterator<ACH_HumanPlayer>(GetWorld()));
+	HumanPlayer->SetActorLocationAndRotation(CameraPosition, FRotationMatrix::MakeFromX(FVector(0, 0, -1)).Rotator());
+
+	// Human player = 0
+	Players.Add(HumanPlayer);
+	// TODO: make random player
+	// Random Player
+	ACH_RandomPlayer* AI = GetWorld()->SpawnActor<ACH_RandomPlayer>(FVector(), FRotator());
+
+	// TODO: make ai player
+	// TODO: select player from main menu
+	// MinMax Player
+	//auto* AI = GetWorld()->SpawnActor<ATTT_MinimaxPlayer>(FVector(), FRotator());
+
+	// AI player = 1
+	Players.Add(AI);
 
 	if (ChessboardClass == nullptr) 
 	{
-		MissingClass();
-		
+		UE_LOG(LogTemp, Error, TEXT("Missing Chessboard class"));
+		return;
 	}
 
 	Chessboard = GetWorld()->SpawnActor<AChessboard>(ChessboardClass);
+	if (Chessboard == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Missing Chessboard object"));
+		return;
+	}
 	Chessboard->CreateChessboard(TileSize);
+	PrepareChessboard();
 	
 	Players[CurrentPlayer]->OnTurn();
 }
@@ -87,7 +119,7 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 	}
 
 	if (IndicatorClass == nullptr)
-		MissingClass();
+		UE_LOG(LogTemp, Error, TEXT("Missing Indicator class"));
 
 	AIndicator* Indicator = GetWorld()->SpawnActor<AIndicator>(
 		IndicatorClass,
@@ -289,7 +321,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	UClass* PieceClass = Cast<UClass>(ColorTypeToClass(Color, Type));
 	if (PieceClass == nullptr)
 	{
-		MissingClass();
+		UE_LOG(LogTemp, Error, TEXT("Missing ChessPiece class"));
 	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
 		PieceClass,
@@ -370,8 +402,3 @@ TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, Piece
 	return nullptr;
 }
 
-// TODO: Handle this better
-void ACH_GameMode::MissingClass()
-{
-	UE_LOG(LogTemp, Error, TEXT("Missing class error"));
-}

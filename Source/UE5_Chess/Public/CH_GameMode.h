@@ -99,7 +99,7 @@ private:
 
 
 	// Subclasses
-	//Chessboard
+	// Chessboard
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessboard> ChessboardClass;
 	// Black ChessPieces

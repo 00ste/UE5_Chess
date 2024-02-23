@@ -18,6 +18,8 @@ ACH_GameMode::ACH_GameMode()
 	ChessPieceSize = 0.9;
 }
 
+double ACH_GameMode::GetTileSize() const { return TileSize; }
+
 void ACH_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -46,7 +48,6 @@ void ACH_GameMode::BeginPlay()
 
 	// AI player = 1
 	Players.Add(AI);
-
 	if (ChessboardClass == nullptr) 
 	{
 		UE_LOG(LogTemp, Error, TEXT("Missing Chessboard class"));
@@ -135,7 +136,7 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 	return Indicator;
 }
 
-void ACH_GameMode::ShowLegalMoves(FVector2D Position)
+void ACH_GameMode::RemoveIndicators()
 {
 	// Destroy all current Indicators first
 	// TODO: Not sure if this is the right way to do it
@@ -144,6 +145,25 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		Indicators.Remove(x);
 		x->Destroy();
 	}
+}
+
+void ACH_GameMode::DoMove(AIndicator const* Indicator)
+{
+}
+
+AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
+{
+	for (AIndicator* Indicator : Indicators)
+	{
+		if (Indicator->GetEndPosition() == EndPos)
+			return Indicator;
+	}
+	return nullptr;
+}
+
+void ACH_GameMode::ShowLegalMoves(FVector2D Position)
+{
+	RemoveIndicators();
 
 	// Get the ChessPiece and check that it's valid
 	AChessPiece* Piece = *ChessPieceMap.Find(Position);
@@ -258,6 +278,11 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 	// Spawn the Indicators
 	for (FVector2D EndPosition : Moves)
 		Indicators.Add(SpawnIndicator(Position, EndPosition));
+}
+
+AChessPiece const* ACH_GameMode::GetChessPieceAt(FVector2D Position) const
+{
+	return *ChessPieceMap.Find(Position);
 }
 
 void ACH_GameMode::PrepareChessboard()

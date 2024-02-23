@@ -10,9 +10,7 @@
 #include "Indicator.h"
 #include "CH_GameMode.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class UE5_CHESS_API ACH_GameMode : public AGameModeBase
 {
@@ -21,10 +19,17 @@ class UE5_CHESS_API ACH_GameMode : public AGameModeBase
 public:
 	// Sets default values for this actor's properties
 	ACH_GameMode();
+	
+	// Returns the TileSize
+	double GetTileSize() const;
 
 	// Prepares the Chessboard by placing each ChessPiece
 	// in the correct Position
 	void PrepareChessboard();
+
+	// Returns a pointer to the ChessPiece at the specified Position,
+	// Returns nullptr if there is no ChessPiece at that Position
+	AChessPiece const* GetChessPieceAt(FVector2D Position) const;
 
 	// Removes the ChessPiece at the given Position from
 	// the Chessboard and Destroys it. Does nothing if
@@ -67,7 +72,16 @@ public:
 	// where a piece at Position can be moved by the player
 	void ShowLegalMoves(FVector2D Position);
 
-	
+	// Removes all Indicators from the Chessboard
+	void RemoveIndicators();
+
+	// Executes the move indicated by the Indicator and removes
+	// all Indicators afterwards
+	void DoMove(AIndicator const* Indicator);
+
+	// Returns an Indicator which has the given EndPosition,
+	// returns nullptr if no such Indicator exists
+	AIndicator const* GetIndicatorForEndPos(FVector2D EndPos);
 
 protected:
 	// Initializes the two players and the Chessboard and
@@ -140,16 +154,5 @@ private:
 	// to a UClass* of a ChessPiece
 	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
 
-	/*
-	// Spawn Indicator at given end position, checking the bounds
-	// of the Chessboard and checking for collisions with other
-	// ChessPieces, preventing movement or allowing capture
-	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
-	AIndicator* SpawnIndicatorSafe(FVector2D StartPosition, FVector2D EndPosition);
-	*/
-
 	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
-
-	// TODO: handle this better
-	void MissingClass();
 };

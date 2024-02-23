@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-// #include "CH_GameInstance.h"
+#include "CH_GameInstance.h"
 #include "CH_PlayerInterface.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -18,19 +18,6 @@ class UE5_CHESS_API ACH_HumanPlayer : public APawn, public ICH_PlayerInterface
 public:
 	// Sets default values for this pawn's properties
 	ACH_HumanPlayer();
-
-	UCameraComponent* Camera;
-
-	// UTTT_GameInstance* GameInstance;
-
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-	bool IsMyTurn = false;
-
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -44,4 +31,14 @@ public:
 	UFUNCTION()
 	void OnClick();
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+	UCameraComponent* Camera;
+	UCH_GameInstance* GameInstance;
+	FVector2D SelectedPosition;
+	const FVector2D DESELECTED = { -1, -1 };
+	bool IsMyTurn = false;
 };

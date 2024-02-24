@@ -25,13 +25,23 @@ void ACH_GameMode::BeginPlay()
 
 	IsGameOver = false;
 
+	ACH_HumanPlayer* HumanPlayer = Cast<ACH_HumanPlayer>(*TActorIterator<ACH_HumanPlayer>(GetWorld()));
+
+	if (ChessboardClass != nullptr)
+	{
+		Chessboard = GetWorld()->SpawnActor<AChessboard>(ChessboardClass);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Chessboard CLASS is null"));
+	}
+
 	// Init players and add to list
 	FVector CameraPosition = {
 		4 * TileSize,
 		4 * TileSize,
 		1000.0f
 	};
-	ACH_HumanPlayer* HumanPlayer = Cast<ACH_HumanPlayer>(*TActorIterator<ACH_HumanPlayer>(GetWorld()));
 	HumanPlayer->SetActorLocationAndRotation(CameraPosition, FRotationMatrix::MakeFromX(FVector(0, 0, -1)).Rotator());
 
 	// Human player = 0
@@ -47,19 +57,7 @@ void ACH_GameMode::BeginPlay()
 
 	// AI player = 1
 	Players.Add(AI);
-	if (ChessboardClass == nullptr) 
-	{
-		UE_LOG(LogTemp, Error, TEXT("Missing Chessboard class"));
-		return;
-	}
 
-	Chessboard = GetWorld()->SpawnActor<AChessboard>(ChessboardClass);
-	if (Chessboard == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Missing Chessboard object"));
-		return;
-	}
-	Chessboard->CreateChessboard(TileSize);
 	PrepareChessboard();
 	
 	Players[CurrentPlayer]->OnTurn();

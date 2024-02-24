@@ -83,12 +83,8 @@ public:
 	// returns nullptr if no such Indicator exists
 	AIndicator const* GetIndicatorForEndPos(FVector2D EndPos);
 
-protected:
-	// Initializes the two players and the Chessboard and
-	// starts the game
-	virtual void BeginPlay() override;
 
-private:
+
 	bool IsGameOver;
 
 	// 0 = HumanPlayer (WHITE)
@@ -96,10 +92,13 @@ private:
 	TArray<ICH_PlayerInterface*> Players;
 	uint32 CurrentPlayer;
 
+	UPROPERTY(VisibleAnywhere)
 	AChessboard* Chessboard;
 
 	// Scale factors
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	double TileSize;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	double ChessPieceSize;
 
 	// Map that stores the ChessPieces on the Chessboard
@@ -155,4 +154,9 @@ private:
 	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
 
 	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
+
+protected:
+	// Initializes the two players and the Chessboard and
+	// starts the game
+	virtual void BeginPlay() override;
 };

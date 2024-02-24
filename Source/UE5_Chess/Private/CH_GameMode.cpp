@@ -10,7 +10,6 @@
 
 
 ACH_GameMode::ACH_GameMode()
-	//: TileSize(1.0), ChessPieceSize(0.9)
 {
 	PlayerControllerClass = ACH_PlayerController::StaticClass();
 	DefaultPawnClass = ACH_HumanPlayer::StaticClass();

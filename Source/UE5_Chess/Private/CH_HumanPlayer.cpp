@@ -14,7 +14,7 @@ ACH_HumanPlayer::ACH_HumanPlayer()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	SetRootComponent(Camera);
 
-	SelectedPosition = NO_SELECT;
+	SelectedPosition = DESELECTED;
 	// PlayerNumber = -1;
 
 }

@@ -138,7 +138,6 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 
 void ACH_GameMode::RemoveIndicators()
 {
-	// Destroy all current Indicators first
 	// TODO: Not sure if this is the right way to do it
 	for (AIndicator* x : Indicators)
 	{
@@ -149,6 +148,8 @@ void ACH_GameMode::RemoveIndicators()
 
 void ACH_GameMode::DoMove(AIndicator const* Indicator)
 {
+	MoveChessPiece(Indicator->GetStartPosition(), Indicator->GetEndPosition());
+	RemoveIndicators();
 }
 
 AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)

@@ -344,7 +344,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	if (ChessPieceMap.Contains(Position)) return nullptr;
 
 	// Spawn ChessPiece in the scene
-	UClass* PieceClass = Cast<UClass>(ColorTypeToClass(Color, Type));
+	TSubclassOf<AChessPiece> PieceClass = ColorTypeToClass(Color, Type);
 	if (PieceClass == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Missing ChessPiece class"));
@@ -385,23 +385,23 @@ bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 	return true;
 }
 
-TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, PieceType Type)
+TSubclassOf<AChessPiece> ACH_GameMode::ColorTypeToClass(PieceColor Color, PieceType Type)
 {
 	if (Color == PieceColor::PBLACK)
 	{
 		switch (Type) {
 		case PieceType::BISHOP:
-			return &BlackBishopClass;
+			return BlackBishopClass;
 		case PieceType::KNIGHT:
-			return &BlackKnightClass;
+			return BlackKnightClass;
 		case PieceType::KING:
-			return &BlackKingClass;
+			return BlackKingClass;
 		case PieceType::QUEEN:
-			return &BlackQueenClass;
+			return BlackQueenClass;
 		case PieceType::PAWN:
-			return &BlackPawnClass;
+			return BlackPawnClass;
 		case PieceType::ROOK:
-			return &BlackRookClass;
+			return BlackRookClass;
 		default:
 			return nullptr;
 		}
@@ -410,17 +410,17 @@ TSubclassOf<AChessPiece>* ACH_GameMode::ColorTypeToClass(PieceColor Color, Piece
 	{
 		switch (Type) {
 		case PieceType::BISHOP:
-			return &WhiteBishopClass;
+			return WhiteBishopClass;
 		case PieceType::KNIGHT:
-			return &WhiteKnightClass;
+			return WhiteKnightClass;
 		case PieceType::KING:
-			return &WhiteKingClass;
+			return WhiteKingClass;
 		case PieceType::QUEEN:
-			return &WhiteQueenClass;
+			return WhiteQueenClass;
 		case PieceType::PAWN:
-			return &WhitePawnClass;
+			return WhitePawnClass;
 		case PieceType::ROOK:
-			return &WhiteRookClass;
+			return WhiteRookClass;
 		default:
 			return nullptr;
 		}

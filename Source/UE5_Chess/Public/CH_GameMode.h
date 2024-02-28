@@ -152,7 +152,7 @@ private:
 
 	// Utility function to map a PieceColor and PieceType
 	// to a UClass* of a ChessPiece
-	TSubclassOf<AChessPiece>* ColorTypeToClass(PieceColor Color, PieceType Type);
+	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type);
 
 	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
 };

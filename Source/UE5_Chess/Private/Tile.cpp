@@ -3,7 +3,7 @@
 // Sets default values
 ATile::ATile()
 {
- 	// Set this actor NOT to call Tick() every frame.
+	// Set this actor NOT to call Tick() every frame.
 	PrimaryActorTick.bCanEverTick = false;
 
 }

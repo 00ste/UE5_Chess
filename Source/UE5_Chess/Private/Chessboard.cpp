@@ -29,7 +29,7 @@ void AChessboard::CreateChessboard(double TileSize)
 		{
 			ATile* Obj = GetWorld()->SpawnActor<ATile>(
 				(x + y) % 2 ? WhiteTileClass : BlackTileClass,
-				FVector(x * TileSize * 100, y * TileSize * 100, 0),
+				FVector(x, y, 0) * TileSize * 100,
 				FRotator::ZeroRotator
 			);
 			Obj->SetActorScale3D(FVector(TileSize, TileSize, 0.1));
@@ -43,6 +43,6 @@ void AChessboard::CreateChessboard(double TileSize)
 void AChessboard::BeginPlay()
 {
 	Super::BeginPlay();
-	CreateChessboard(1.0);	// !! THIS WAS MISSING
+	/// CreateChessboard(1.0);	// !! THIS WAS MISSING (BECAUSE GAMEMODE SHOULD DO IT!!!!)
 }
 

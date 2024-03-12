@@ -45,23 +45,23 @@ void ACH_HumanPlayer::OnTurn()
 	IsMyTurn = true;
 	// TODO: Remove this
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Your turn"));
-	GameInstance->SetTurnMessage(TEXT("Your turn"));
+	// GameInstance->SetTurnMessage(TEXT("Your turn"));
 }
 
 void ACH_HumanPlayer::OnWin()
 {
 	// TODO: Remove this
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("You won!"));
-	GameInstance->SetTurnMessage(TEXT("You won!"));
-	GameInstance->IncrementScoreHumanPlayer();
+	// GameInstance->SetTurnMessage(TEXT("You won!"));
+	// GameInstance->IncrementScoreHumanPlayer();
 }
 
 void ACH_HumanPlayer::OnLose()
 {
 	// TODO: Remove this
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("You lost!"));
-	GameInstance->SetTurnMessage(TEXT("You lost!"));
-	GameInstance->IncrementScoreHumanPlayer();
+	// GameInstance->SetTurnMessage(TEXT("You lost!"));
+	// GameInstance->IncrementScoreHumanPlayer();
 }
 
 void ACH_HumanPlayer::OnClick()

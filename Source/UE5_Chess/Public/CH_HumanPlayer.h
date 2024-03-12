@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "CH_GameInstance.h"
+// #include "CH_GameInstance.h"
 #include "CH_PlayerInterface.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -37,7 +37,7 @@ protected:
 
 private:
 	UCameraComponent* Camera;
-	UCH_GameInstance* GameInstance;
+	// UCH_GameInstance* GameInstance;
 	FVector2D SelectedPosition;
 	const FVector2D DESELECTED = { -1, -1 };
 	bool IsMyTurn = false;

@@ -10,7 +10,6 @@
 
 
 ACH_GameMode::ACH_GameMode()
-	//: TileSize(1.0), ChessPieceSize(0.9)
 {
 	PlayerControllerClass = ACH_PlayerController::StaticClass();
 	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
@@ -28,8 +27,8 @@ void ACH_GameMode::BeginPlay()
 
 	// Init players and add to list
 	FVector CameraPosition = {
-		4 * TileSize,
-		4 * TileSize,
+		4 * TileSize * 100,
+		4 * TileSize * 100,
 		1000.0f
 	};
 	ACH_HumanPlayer* HumanPlayer = Cast<ACH_HumanPlayer>(*TActorIterator<ACH_HumanPlayer>(GetWorld()));
@@ -351,7 +350,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
 		PieceClass,
-		FVector(Position[0], Position[1], 0) * ChessPieceSize,
+		FVector(Position[1], Position[0], 0) * ChessPieceSize * 100 * TileSize/ChessPieceSize, // FOR SOME REASON THIS IS NEEDED
 		FRotator::ZeroRotator
 	);
 

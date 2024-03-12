@@ -11,6 +11,7 @@
 #include "Tile.generated.h"
 
 
+// !! NEVER USED??
 // A tile can either be black or white
 UENUM()
 enum TileColor : uint32 {
@@ -23,8 +24,8 @@ UCLASS()
 class UE5_CHESS_API ATile : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ATile();
 
@@ -32,16 +33,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/*
-	UPROPERTY(VisibileAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* Scene;
 
-	UPROPERTY(VisibileAnywhere, BlueprintReadOnly, Category = "Component")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* StaticMeshComponent;
-	*/
-
-public:	
-	// Called every frame
-	// virtual void Tick(float DeltaTime) override;
 
 };

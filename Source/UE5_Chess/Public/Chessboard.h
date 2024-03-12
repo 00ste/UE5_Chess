@@ -6,17 +6,20 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Tile.h"
-#include "ChessPiece.h"
+// #include "ChessPiece.h" (!! maybe not necessary?)
 #include "Chessboard.generated.h"
 
 UCLASS()
 class UE5_CHESS_API AChessboard : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AChessboard();
+
+	// Called when an instance of this class is placed (in editor) or spawned (!! THIS WAS MISSING)
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 	// Creates the Tiles that make up the Chessboard
 	void CreateChessboard(double TileSize);
@@ -29,7 +32,7 @@ private:
 	// Map that stores the Tiles that make up the Chessboard
 	UPROPERTY(Transient)
 	TMap<FVector2D, ATile*> TileMap;
-	
+
 	// Subclasses for black and white tiles
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<ATile> BlackTileClass;

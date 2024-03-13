@@ -24,10 +24,13 @@ void ACH_GameMode::BeginPlay()
 	Super::BeginPlay();
 
 	IsGameOver = false;
+	// The Chessboard will be aligned to the left, so there will be
+	// an offset along the x-axis
+	double XOffset = 0.0;
 
 	// Init players and add to list
 	FVector CameraPosition = {
-		4 * TileSize * 100,
+		4 * TileSize * 100 + XOffset,
 		4 * TileSize * 100,
 		1000.0f
 	};
@@ -124,7 +127,7 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 
 	AIndicator* Indicator = GetWorld()->SpawnActor<AIndicator>(
 		IndicatorClass,
-		FVector(EndPosition[0], EndPosition[1], 0.3) * TileSize,
+		FVector(EndPosition[0] + 0.5, EndPosition[1] + 0.5, 0.002) * TileSize * 100,
 		FRotator::ZeroRotator
 	);
 
@@ -191,15 +194,18 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		// parametrizes values that would otherwise need if-statements to
 		// be determined.
 		uint32 ColorIndex = Piece->GetColor() == PieceColor::PWHITE ? 0 : 1;
-		uint32 yOffset = 2 * ColorIndex + 1;
 
-		// Movement
-		// If the pawn is at the start position (which is a function of the
-		// ColorIndex), it can move by 2 tiles instead of 1
-		uint32 MaxLength = Position[1] == 6 - 5 * ColorIndex ? 2 : 1;
+		// The direction in which Pawns can move is always along +y
+		// (YOffset = 1) for WHITE pawns and -y (YOffset = -1) for BLACK Pawns
+		uint32 YOffset = 1 - 2 * ColorIndex;
+
+		// A Pawn can move forwards by 2 tiles if it's in the start position
+		// The start position is y=1 for WHITE Pawns and y=6 for BLACK Pawns
+		uint32 MaxLength = Position[1] == 5 * ColorIndex + 1 ? 2 : 1;
+
 		ExploreDirection(
 			Position,
-			FVector2D(0, yOffset),
+			FVector2D(0, YOffset),
 			MaxLength,
 			false,
 			&Moves,
@@ -210,7 +216,7 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		// manually instead
 		for (uint32 xOffset = -1; xOffset <= 1; xOffset += 2)
 		{
-			FVector2D TargetPos = Position + FVector2D(xOffset, yOffset);
+			FVector2D TargetPos = Position + FVector2D(xOffset, YOffset);
 			AChessPiece const* Target = GetChessPieceAt(TargetPos);
 			if (Target != nullptr && Target->GetColor() != Piece->GetColor())
 			{
@@ -300,35 +306,35 @@ void ACH_GameMode::PrepareChessboard()
 	// Put ChessPieces on the Chessboard
 	// Pawns
 	for (uint32 i = 0; i < 8; i++) {
-		PutChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 1));
-		PutChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 6));
+		PutChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 6));
+		PutChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 1));
 	}
 
 	// Rooks
-	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 0));
-	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 0));
-	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 7));
-	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 0));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 0));
 
 	// Bishops
-	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 0));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 0));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 7));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 0));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 0));
 
 	// Knights
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 0));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 0));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 7));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 0));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 0));
 
 	// Queens
-	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 0));
-	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 7));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 7));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 0));
 
 	// Kings
-	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(4, 7));
-	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(4, 0));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(4, 0));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(4, 7));
 }
 
 bool ACH_GameMode::RemoveChessPiece(FVector2D Position)
@@ -353,7 +359,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
 		PieceClass,
-		FVector(Position[1], Position[0], 0) * ChessPieceSize * 100 * TileSize/ChessPieceSize, // FOR SOME REASON THIS IS NEEDED
+		FVector(Position[1] + 0.5, Position[0] + 0.5, 0.001) * ChessPieceSize * 100 * TileSize/ChessPieceSize, // FOR SOME REASON THIS IS NEEDED
 		FRotator::ZeroRotator
 	);
 
@@ -361,7 +367,7 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 	ChessPiece->Setup(Type, Color);
 
 	// Add ChessPiece to ChessPieceMap
-	ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
+	// ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
 	ChessPieceMap.Add(Position, ChessPiece);
 
 	return ChessPiece;
@@ -379,7 +385,7 @@ bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 	// Move Actor in the new position of the scene
 	FHitResult temp; // needed by K2_SetActorLocation, will get ignored
 	ChessPieceMap[NewPosition]->K2_SetActorLocation(
-		FVector(NewPosition[0], NewPosition[1], 0.1) * TileSize,
+		FVector(NewPosition[0], NewPosition[1], 0.001) * TileSize,
 		false,
 		temp,
 		true

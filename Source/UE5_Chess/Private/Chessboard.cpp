@@ -19,17 +19,19 @@ void AChessboard::CreateChessboard(double TileSize)
 	UE_LOG(LogTemp, Error, TEXT("Setting up chessboard..."));
 	if (WhiteTileClass == nullptr || BlackTileClass == nullptr)
 	{
-		// TODO: handle this better
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Error! Missing Tile classes"));
 		UE_LOG(LogTemp, Error, TEXT("Missing Tile Class!!"));
 	}
 	for (int32 x = 0; x < 8; x++)
 	{
 		for (int32 y = 0; y < 8; y++)
 		{
+			// Tiles are offset by 0.5 so the x,y coordinate indicates their bottom-left
+			// corner rather than their center. This facilitates calculating the clicked
+			// Tile from the Hit ImpactPoint
 			ATile* Obj = GetWorld()->SpawnActor<ATile>(
 				(x + y) % 2 ? WhiteTileClass : BlackTileClass,
-				FVector(x, y, 0) * TileSize * 100,
+				
+				FVector(x+0.5, y+0.5, 0) * TileSize * 100,
 				FRotator::ZeroRotator
 			);
 			Obj->SetActorScale3D(FVector(TileSize, TileSize, 0.1));

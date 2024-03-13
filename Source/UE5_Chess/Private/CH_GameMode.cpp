@@ -80,7 +80,8 @@ void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D Direction,
 	if (TargetPosition[1] < 0 || TargetPosition[1] > 7) return;
 
 	// Check if TargetPosition is free
-	AChessPiece* TargetPiece = *ChessPieceMap.Find(TargetPosition);
+	// AChessPiece* TargetPiece = *ChessPieceMap.Find(TargetPosition);
+	AChessPiece const* TargetPiece = GetChessPieceAt(TargetPosition);
 	if (TargetPiece == nullptr)
 	{
 		Moves->Add(TargetPosition);
@@ -106,7 +107,7 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 	}
 	else
 	{
-		if (*ChessPieceMap.Find(StartPosition) == nullptr)
+		if (GetChessPieceAt(StartPosition) == nullptr)
 		{
 			IndicatorClass = Cast<UClass>(MoveIndicatorClass);
 			Type = MoveType::MOVE;
@@ -166,7 +167,8 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 	RemoveIndicators();
 
 	// Get the ChessPiece and check that it's valid
-	AChessPiece* Piece = *ChessPieceMap.Find(Position);
+	// AChessPiece* Piece = *ChessPieceMap.Find(Position);
+	AChessPiece const* Piece = GetChessPieceAt(Position);
 	if (Piece == nullptr) return;
 	if (Piece->GetColor() == PieceColor::PCNONE) return;
 	if (Piece->GetType() == PieceType::PTNONE) return;
@@ -209,7 +211,7 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		for (uint32 xOffset = -1; xOffset <= 1; xOffset += 2)
 		{
 			FVector2D TargetPos = Position + FVector2D(xOffset, yOffset);
-			AChessPiece* Target = *ChessPieceMap.Find(TargetPos);
+			AChessPiece const* Target = GetChessPieceAt(TargetPos);
 			if (Target != nullptr && Target->GetColor() != Piece->GetColor())
 			{
 				Moves.Add(TargetPos);
@@ -282,7 +284,8 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 
 AChessPiece const* ACH_GameMode::GetChessPieceAt(FVector2D Position) const
 {
-	return *ChessPieceMap.Find(Position);
+	AChessPiece* const* result = ChessPieceMap.Find(Position);
+	return result != nullptr ? *result : nullptr;
 }
 
 void ACH_GameMode::PrepareChessboard()

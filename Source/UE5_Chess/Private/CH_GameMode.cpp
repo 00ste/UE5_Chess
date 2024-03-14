@@ -139,20 +139,41 @@ AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndP
 	return Indicator;
 }
 
-void ACH_GameMode::RemoveIndicators()
-{
-	// TODO: Not sure if this is the right way to do it
+void ACH_GameMode::RemoveAllIndicators()
+{	
 	for (AIndicator* x : Indicators)
 	{
-		Indicators.Remove(x);
 		x->Destroy();
+	}
+	Indicators.Empty();
+	// for (auto It = Indicators.CreateIterator(); It; ++It)
+	// {
+	// 	 (*It)->Destroy();
+	//   It.RemoveCurrent();
+	// }
+
+	// TODO: Not sure if this is the right way to do it
+	// for (AIndicator* x : Indicators)
+	// {
+	// 	Indicators.Remove(x);
+	// 	x->Destroy();
+	// }
+}
+
+void ACH_GameMode::RemoveAllChessPieces()
+{
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+
+	for (FVector2D Position : Positions) {
+		GetChessPieceAt(Position)->Destroy();
 	}
 }
 
 void ACH_GameMode::DoMove(AIndicator const* Indicator)
 {
 	MoveChessPiece(Indicator->GetStartPosition(), Indicator->GetEndPosition());
-	RemoveIndicators();
+	RemoveAllIndicators();
 }
 
 AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
@@ -167,7 +188,7 @@ AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
 
 void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 {
-	RemoveIndicators();
+	RemoveAllIndicators();
 
 	// Get the ChessPiece and check that it's valid
 	// AChessPiece* Piece = *ChessPieceMap.Find(Position);
@@ -288,7 +309,14 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		Indicators.Add(SpawnIndicator(Position, EndPosition));
 }
 
-AChessPiece const* ACH_GameMode::GetChessPieceAt(FVector2D Position) const
+AChessPiece* ACH_GameMode::GetChessPieceAt(FVector2D Position)
+{
+	if (ChessPieceMap.Contains(Position))
+		return ChessPieceMap[Position];
+	return nullptr;
+}
+
+AChessPiece const* ACH_GameMode::GetConstChessPieceAt(FVector2D Position) const
 {
 	AChessPiece* const* result = ChessPieceMap.Find(Position);
 	return result != nullptr ? *result : nullptr;
@@ -339,12 +367,10 @@ void ACH_GameMode::PrepareChessboard()
 
 bool ACH_GameMode::RemoveChessPiece(FVector2D Position)
 {
-	if (!ChessPieceMap.Contains(Position))
-		return true;
-
-	AChessPiece* x = ChessPieceMap[Position];
+	AChessPiece** x = ChessPieceMap.Find(Position);
+	if (x == nullptr) return true;
 	ChessPieceMap.Remove(Position);
-	return x->Destroy();
+	return (*x)->Destroy();
 }
 
 AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVector2D Position)
@@ -375,11 +401,14 @@ AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVect
 
 bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 {
-	if (!ChessPieceMap.Contains(OldPosition)) return true;
 	if (ChessPieceMap.Contains(NewPosition)) return false;
 
 	// Update entry from ChessPieceMap
-	ChessPieceMap[NewPosition] = ChessPieceMap[OldPosition];
+	AChessPiece const* OldPiece = GetChessPieceAt(OldPosition);
+	if (OldPiece == nullptr) return false;
+
+	PutChessPiece(OldPiece->GetType(), OldPiece->GetColor(), NewPosition);
+	// ChessPieceMap[NewPosition] = ChessPieceMap[OldPosition];
 	ChessPieceMap.Remove(OldPosition);
 
 	// Move Actor in the new position of the scene

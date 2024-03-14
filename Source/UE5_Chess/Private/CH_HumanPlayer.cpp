@@ -110,7 +110,7 @@ void ACH_HumanPlayer::OnClick()
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Move selected!"));
 			GameMode->DoMove(HitIndicator);
 			SelectedPosition = DESELECTED;
-			GameMode->RemoveIndicators();
+			GameMode->RemoveAllIndicators();
 			IsMyTurn = false;
 			return;
 		}
@@ -122,7 +122,7 @@ void ACH_HumanPlayer::OnClick()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
 			SelectedPosition = DESELECTED;
-			GameMode->RemoveIndicators();
+			GameMode->RemoveAllIndicators();
 			return;
 		}
 		// When clicking on a White ChessPiece, it becomes the currently selected ChessPiece

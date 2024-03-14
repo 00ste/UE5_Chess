@@ -10,11 +10,46 @@
 #include "Indicator.h"
 #include "CH_GameMode.generated.h"
 
+/*
+TODO: structure and rewrite classes for safety and test!!
+
+#GAMEMODE
+* BeginPlay
++ GetTileSize
++ PrepareChessboard
+
+#ACTIONS
++ DoMove
+- ExploreDirection
++ GetIndicatorForEndPos
++ ShowLegalMoves
+
+#CHESSPIECE OPERATIONS
+- GetChessPieceAt
++ GetConstChessPieceAt
+- PutChessPiece
+- MoveChessPiece
+- RemoveChessPiece
++ RemoveAllChessPieces
+
+#INDICATORS
+- SpawnIndicator->PutIndicator
++ RemoveAllIndicators
+
+#CLASSES
+- (Classes)
+-ColorTypeToClass
+*/
 
 UCLASS()
 class UE5_CHESS_API ACH_GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+protected:
+	// Initializes the two players and the Chessboard and
+	// starts the game
+	virtual void BeginPlay() override;
 
 public:
 	// Sets default values for this actor's properties
@@ -27,9 +62,9 @@ public:
 	// in the correct Position
 	void PrepareChessboard();
 
-	// Returns a pointer to the ChessPiece at the specified Position,
+	// Returns a pointer to a const ChessPiece at the specified Position,
 	// Returns nullptr if there is no ChessPiece at that Position
-	AChessPiece const* GetChessPieceAt(FVector2D Position) const;
+	AChessPiece const* GetConstChessPieceAt(FVector2D Position) const;
 
 	// Removes the ChessPiece at the given Position from
 	// the Chessboard and Destroys it. Does nothing if
@@ -49,7 +84,8 @@ public:
 	// Moves a ChessPiece from one Position to another,
 	// returning true if the ChessPiece was moved
 	// successfully, returns false if there was already
-	// another ChessPiece in NewPosition
+	// another ChessPiece in NewPosition or if there was
+	// no piece in OldPosition
 	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
 	bool MoveChessPiece(FVector2D OldPosition,
 		FVector2D NewPosition);
@@ -73,7 +109,10 @@ public:
 	void ShowLegalMoves(FVector2D Position);
 
 	// Removes all Indicators from the Chessboard
-	void RemoveIndicators();
+	void RemoveAllIndicators();
+
+	// Removes all ChessPieces from the Chessboard
+	void RemoveAllChessPieces();
 
 	// Executes the move indicated by the Indicator and removes
 	// all Indicators afterwards
@@ -82,11 +121,6 @@ public:
 	// Returns an Indicator which has the given EndPosition,
 	// returns nullptr if no such Indicator exists
 	AIndicator const* GetIndicatorForEndPos(FVector2D EndPos);
-
-protected:
-	// Initializes the two players and the Chessboard and
-	// starts the game
-	virtual void BeginPlay() override;
 
 private:
 	bool IsGameOver;
@@ -155,4 +189,8 @@ private:
 	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type);
 
 	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
+
+	// Returns a pointer to the ChessPiece at the specified Position,
+	// Returns nullptr if there is no ChessPiece at that Position
+	AChessPiece* GetChessPieceAt(FVector2D Position);
 };

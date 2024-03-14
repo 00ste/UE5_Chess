@@ -13,32 +13,35 @@
 /*
 TODO: structure and rewrite classes for safety and test!!
 
-#GAMEMODE
 * BeginPlay
+
+PUBLIC
+#GAMEMODE
++ ACH_Gamemode
 + GetTileSize
 + PrepareChessboard
-
-#ACTIONS
++ TurnNextPlayer
 + DoMove
-- ExploreDirection
-+ GetIndicatorForEndPos
 + ShowLegalMoves
-
 #CHESSPIECE OPERATIONS
-- GetChessPieceAt
-+ GetConstChessPieceAt
-- PutChessPiece
-- MoveChessPiece
-- RemoveChessPiece
-+ RemoveAllChessPieces
++ GetConstChessPieceAt x
++ RemoveAllChessPieces x
+#INDICATOR OPERATIONS
++ GetIndicatorForEndPos x
++ RemoveAllIndicators x
 
-#INDICATORS
-- SpawnIndicator->PutIndicator
-+ RemoveAllIndicators
-
-#CLASSES
-- (Classes)
--ColorTypeToClass
+PRIVATE
+#GAMEMODE
+- (Fields)
+- ColorTypeToClass
+- ExploreDirection
+#CHESSPIECE OPERATIONS
+- GetChessPieceAt x
+- PutChessPiece x
+- RemoveChessPiece x
+- MoveChessPiece x
+#INDICATOR OPERATIONS
+- PutIndicator x
 */
 
 UCLASS()
@@ -52,6 +55,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	// ===== GAMEMODE ===== //
+
 	// Sets default values for this actor's properties
 	ACH_GameMode();
 	
@@ -62,61 +67,31 @@ public:
 	// in the correct Position
 	void PrepareChessboard();
 
-	// Returns a pointer to a const ChessPiece at the specified Position,
-	// Returns nullptr if there is no ChessPiece at that Position
-	AChessPiece const* GetConstChessPieceAt(FVector2D Position) const;
-
-	// Removes the ChessPiece at the given Position from
-	// the Chessboard and Destroys it. Does nothing if
-	// there's no ChessPiece at the given Position.
-	// Returns true if the ChessPiece was Destroyed
-	// successfully, otherwise returns false.
-	bool RemoveChessPiece(FVector2D Position);
-
-	// Puts a new ChessPiece of the given PieceType and
-	// PieceColor at the given Position, returning a pointer
-	// to the new ChessPiece that was placed, or nullptr if
-	// there was already a ChessPiece in that position.
-	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
-	AChessPiece* PutChessPiece(PieceType type,
-		PieceColor color, FVector2D Position);
-
-	// Moves a ChessPiece from one Position to another,
-	// returning true if the ChessPiece was moved
-	// successfully, returns false if there was already
-	// another ChessPiece in NewPosition or if there was
-	// no piece in OldPosition
-	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
-	bool MoveChessPiece(FVector2D OldPosition,
-		FVector2D NewPosition);
-
 	// Changes the CurrentPlayer index to the next player
 	// and calls that player's OnTurn() method
 	void TurnNextPlayer();
 
-	// Recursively explores a line of Tiles starting from Position
-	// along Direction, and stops either when an obstacle is found
-	// or when MaxLength Tiles have been explored. The Tiles' positions
-	// are all appended to Moves. If CanCapture is true, a Tile that
-	// contains a ChessPiece owned by the opponent will count as a
-	// legal move (capturing).
-	void ExploreDirection(FVector2D Position, FVector2D Direction,
-		uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves,
-		PieceColor PlayerColor);
+	// Executes the move indicated by the Indicator and removes
+	// all Indicators afterwards
+	void DoMove(AIndicator const* Indicator);
 
 	// Spawns Indicators on the Chessboard that indicate
 	// where a piece at Position can be moved by the player
 	void ShowLegalMoves(FVector2D Position);
 
-	// Removes all Indicators from the Chessboard
-	void RemoveAllIndicators();
+	// ===== CHESSPIECE OPERATIONS ===== //
+
+	// Returns a pointer to a const ChessPiece at the specified Position,
+	// Returns nullptr if there is no ChessPiece at that Position
+	AChessPiece const* GetConstChessPieceAt(FVector2D Position) const;
 
 	// Removes all ChessPieces from the Chessboard
 	void RemoveAllChessPieces();
+	
+	// ===== INDICATOR OPERATIONS ===== //
 
-	// Executes the move indicated by the Indicator and removes
-	// all Indicators afterwards
-	void DoMove(AIndicator const* Indicator);
+	// Removes all Indicators from the Chessboard
+	void RemoveAllIndicators();
 
 	// Returns an Indicator which has the given EndPosition,
 	// returns nullptr if no such Indicator exists
@@ -144,7 +119,6 @@ private:
 	// for the currently selected ChessPiece
 	UPROPERTY(Transient)
 	TArray<AIndicator*> Indicators;
-
 
 	// Subclasses
 	// Chessboard
@@ -188,9 +162,57 @@ private:
 	// to a UClass* of a ChessPiece
 	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type);
 
-	AIndicator* SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition);
+	// Recursively explores a line of Tiles starting from Position
+	// along Direction, and stops either when an obstacle is found
+	// or when MaxLength Tiles have been explored. The Tiles' positions
+	// are all appended to Moves. If CanCapture is true, a Tile that
+	// contains a ChessPiece owned by the opponent will count as a
+	// legal move (capturing).
+	void ExploreDirection(FVector2D Position, FVector2D Direction,
+		uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves,
+		PieceColor PlayerColor);
+
+	// ===== CHESSPIECE OPERATIONS ===== //
 
 	// Returns a pointer to the ChessPiece at the specified Position,
 	// Returns nullptr if there is no ChessPiece at that Position
 	AChessPiece* GetChessPieceAt(FVector2D Position);
+
+	// Puts a new ChessPiece of the given PieceType and
+	// PieceColor at the given Position, returning a pointer
+	// to the new ChessPiece that was placed, or nullptr if
+	// there was already a ChessPiece in that position.
+	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
+	AChessPiece* PutChessPiece(PieceType type,
+		PieceColor color, FVector2D Position);
+
+	// Removes the ChessPiece at the given Position from
+	// the Chessboard and Destroys it. Does nothing if
+	// there's no ChessPiece at the given Position.
+	// Returns true if the ChessPiece was Destroyed
+	// successfully or if there was no ChessPiece at the
+	// given Position, otherwise returns false.
+	bool RemoveChessPiece(FVector2D Position);
+
+	// Moves a ChessPiece from one Position to another,
+	// returning true if the ChessPiece was moved
+	// successfully, returns false if there was already
+	// another ChessPiece in NewPosition or if there was
+	// no piece in OldPosition
+	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
+	bool MoveChessPiece(FVector2D OldPosition,
+		FVector2D NewPosition);
+
+	// ===== INDICATOR OPERATIONS ===== //
+
+	// Creates a new indicator on the EndPosition representing
+	// a possible move from StartPosition to EndPosition, adding
+	// it to the internal TArray of Indicators.
+	// Returns a pointer to the newly spawned Indicator, or nullptr
+	// if a different Indicator existed with the same EndPosition.
+	// The type of the Indicator will be calculated as follows:
+	// - PROMOTE Indicator if StartPosition == EndPosition
+	// - MOVE Indicator if the EndPosition is free
+	// - CAPTURE Indicator if the EndPosition is occupied
+	AIndicator* PutIndicator(FVector2D StartPosition, FVector2D EndPosition);
 };

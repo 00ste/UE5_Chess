@@ -8,17 +8,6 @@
 #include "CH_RandomPlayer.h"
 #include "EngineUtils.h"
 
-
-ACH_GameMode::ACH_GameMode()
-{
-	PlayerControllerClass = ACH_PlayerController::StaticClass();
-	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
-	TileSize = 1.0;
-	ChessPieceSize = 0.9;
-}
-
-double ACH_GameMode::GetTileSize() const { return TileSize; }
-
 void ACH_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -68,122 +57,66 @@ void ACH_GameMode::BeginPlay()
 	Players[CurrentPlayer]->OnTurn();
 }
 
+ACH_GameMode::ACH_GameMode()
+{
+	PlayerControllerClass = ACH_PlayerController::StaticClass();
+	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
+	TileSize = 1.0;
+	ChessPieceSize = 0.9;
+}
+
+double ACH_GameMode::GetTileSize() const { return TileSize; }
+
+// TODO: TEST THIS
+void ACH_GameMode::PrepareChessboard()
+{
+	// Delete all existing ChessPieces
+	RemoveAllChessPieces();
+
+	// Put ChessPieces on the Chessboard
+	// Pawns
+	for (uint32 i = 0; i < 8; i++) {
+		PutChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 6));
+		PutChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 1));
+	}
+
+	// Rooks
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 7));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 0));
+	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 0));
+
+	// Bishops
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 7));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 0));
+	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 0));
+
+	// Knights
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 7));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 0));
+	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 0));
+
+	// Queens
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 7));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 0));
+
+	// Kings
+	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(4, 0));
+	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(4, 7));
+}
+
 void ACH_GameMode::TurnNextPlayer()
 {
 	CurrentPlayer = (CurrentPlayer + 1) % 2;
 	Players[CurrentPlayer]->OnTurn();
 }
 
-void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D Direction,
-	uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves, PieceColor PlayerColor)
-{
-	FVector2D TargetPosition = Position + Direction;
-	// Check if TargetPosition is out of bounds
-	if (TargetPosition[0] < 0 || TargetPosition[0] > 7) return;
-	if (TargetPosition[1] < 0 || TargetPosition[1] > 7) return;
-
-	// Check if TargetPosition is free
-	// AChessPiece* TargetPiece = *ChessPieceMap.Find(TargetPosition);
-	AChessPiece const* TargetPiece = GetChessPieceAt(TargetPosition);
-	if (TargetPiece == nullptr)
-	{
-		Moves->Add(TargetPosition);
-		ExploreDirection(TargetPosition, Direction, MaxLength - 1, CanCapture, Moves, PlayerColor);
-	}
-	else {
-		// If TargetPosition is occupied by a ChessPiece, it can be captured only if
-		// it's owned by the opponent and the CanCapture flag is set to true
-		if (CanCapture && TargetPiece->GetColor() != PlayerColor)
-			Moves->Add(TargetPosition);
-		return;
-	}
-}
-
-AIndicator* ACH_GameMode::SpawnIndicator(FVector2D StartPosition, FVector2D EndPosition)
-{
-	UClass* IndicatorClass;
-	MoveType Type;
-	if (StartPosition == EndPosition)
-	{
-		IndicatorClass = Cast<UClass>(PromoteIndicatorClass);
-		Type = MoveType::PROMOTE;
-	}
-	else
-	{
-		if (GetChessPieceAt(StartPosition) == nullptr)
-		{
-			IndicatorClass = Cast<UClass>(MoveIndicatorClass);
-			Type = MoveType::MOVE;
-		}
-		else
-		{
-			IndicatorClass = Cast<UClass>(CaptureIndicatorClass);
-			Type = MoveType::CAPTURE;
-		}
-	}
-
-	if (IndicatorClass == nullptr)
-		UE_LOG(LogTemp, Error, TEXT("Missing Indicator class"));
-
-	AIndicator* Indicator = GetWorld()->SpawnActor<AIndicator>(
-		IndicatorClass,
-		FVector(EndPosition[0] + 0.5, EndPosition[1] + 0.5, 0.002) * TileSize * 100,
-		FRotator::ZeroRotator
-	);
-
-	// Set up ChessPiece
-	Indicator->Setup(Type, StartPosition, EndPosition);
-
-	// Add ChessPiece to ChessPieceMap
-	Indicator->SetActorScale3D(FVector(1.0, 1.0, 0.1));
-	return Indicator;
-}
-
-void ACH_GameMode::RemoveAllIndicators()
-{	
-	for (AIndicator* x : Indicators)
-	{
-		x->Destroy();
-	}
-	Indicators.Empty();
-	// for (auto It = Indicators.CreateIterator(); It; ++It)
-	// {
-	// 	 (*It)->Destroy();
-	//   It.RemoveCurrent();
-	// }
-
-	// TODO: Not sure if this is the right way to do it
-	// for (AIndicator* x : Indicators)
-	// {
-	// 	Indicators.Remove(x);
-	// 	x->Destroy();
-	// }
-}
-
-void ACH_GameMode::RemoveAllChessPieces()
-{
-	TArray<FVector2D> Positions;
-	ChessPieceMap.GetKeys(Positions);
-
-	for (FVector2D Position : Positions) {
-		GetChessPieceAt(Position)->Destroy();
-	}
-}
-
 void ACH_GameMode::DoMove(AIndicator const* Indicator)
 {
 	MoveChessPiece(Indicator->GetStartPosition(), Indicator->GetEndPosition());
 	RemoveAllIndicators();
-}
-
-AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
-{
-	for (AIndicator* Indicator : Indicators)
-	{
-		if (Indicator->GetEndPosition() == EndPos)
-			return Indicator;
-	}
-	return nullptr;
 }
 
 void ACH_GameMode::ShowLegalMoves(FVector2D Position)
@@ -306,120 +239,58 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 	
 	// Spawn the Indicators
 	for (FVector2D EndPosition : Moves)
-		Indicators.Add(SpawnIndicator(Position, EndPosition));
+		Indicators.Add(PutIndicator(Position, EndPosition));
 }
 
-AChessPiece* ACH_GameMode::GetChessPieceAt(FVector2D Position)
-{
-	if (ChessPieceMap.Contains(Position))
-		return ChessPieceMap[Position];
-	return nullptr;
-}
-
+// TODO: TEST THIS
 AChessPiece const* ACH_GameMode::GetConstChessPieceAt(FVector2D Position) const
 {
 	AChessPiece* const* result = ChessPieceMap.Find(Position);
 	return result != nullptr ? *result : nullptr;
 }
 
-void ACH_GameMode::PrepareChessboard()
+// TODO: TEST THIS
+void ACH_GameMode::RemoveAllChessPieces()
 {
-	// Delete all existing ChessPieces
 	TArray<FVector2D> Positions;
 	ChessPieceMap.GetKeys(Positions);
+
 	for (FVector2D Position : Positions) {
-		RemoveChessPiece(Position);
+		GetChessPieceAt(Position)->Destroy();
 	}
-
-	// Put ChessPieces on the Chessboard
-	// Pawns
-	for (uint32 i = 0; i < 8; i++) {
-		PutChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 6));
-		PutChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 1));
-	}
-
-	// Rooks
-	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 7));
-	PutChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 7));
-	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 0));
-	PutChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 0));
-
-	// Bishops
-	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 7));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 7));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 0));
-	PutChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 0));
-
-	// Knights
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 7));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 7));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 0));
-	PutChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 0));
-
-	// Queens
-	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 7));
-	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 0));
-
-	// Kings
-	PutChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(4, 0));
-	PutChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(4, 7));
 }
 
-bool ACH_GameMode::RemoveChessPiece(FVector2D Position)
+// TODO: TEST THIS
+AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
 {
-	AChessPiece** x = ChessPieceMap.Find(Position);
-	if (x == nullptr) return true;
-	ChessPieceMap.Remove(Position);
-	return (*x)->Destroy();
-}
-
-AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVector2D Position)
-{
-	if (ChessPieceMap.Contains(Position)) return nullptr;
-
-	// Spawn ChessPiece in the scene
-	TSubclassOf<AChessPiece> PieceClass = ColorTypeToClass(Color, Type);
-	if (PieceClass == nullptr)
+	for (AIndicator* Indicator : Indicators)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Missing ChessPiece class"));
+		if (Indicator->GetEndPosition() == EndPos)
+			return Indicator;
 	}
-	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
-		PieceClass,
-		FVector(Position[1] + 0.5, Position[0] + 0.5, 0.001) * ChessPieceSize * 100 * TileSize/ChessPieceSize, // FOR SOME REASON THIS IS NEEDED
-		FRotator::ZeroRotator
-	);
-
-	// Set up ChessPiece
-	ChessPiece->Setup(Type, Color);
-
-	// Add ChessPiece to ChessPieceMap
-	// ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
-	ChessPieceMap.Add(Position, ChessPiece);
-
-	return ChessPiece;
+	return nullptr;
 }
 
-bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
-{
-	if (ChessPieceMap.Contains(NewPosition)) return false;
+// TODO: TEST THIS
+void ACH_GameMode::RemoveAllIndicators()
+{	
+	for (AIndicator* x : Indicators)
+	{
+		x->Destroy();
+	}
+	Indicators.Empty();
+	// for (auto It = Indicators.CreateIterator(); It; ++It)
+	// {
+	// 	 (*It)->Destroy();
+	//   It.RemoveCurrent();
+	// }
 
-	// Update entry from ChessPieceMap
-	AChessPiece const* OldPiece = GetChessPieceAt(OldPosition);
-	if (OldPiece == nullptr) return false;
-
-	PutChessPiece(OldPiece->GetType(), OldPiece->GetColor(), NewPosition);
-	// ChessPieceMap[NewPosition] = ChessPieceMap[OldPosition];
-	ChessPieceMap.Remove(OldPosition);
-
-	// Move Actor in the new position of the scene
-	FHitResult temp; // needed by K2_SetActorLocation, will get ignored
-	ChessPieceMap[NewPosition]->K2_SetActorLocation(
-		FVector(NewPosition[0], NewPosition[1], 0.001) * TileSize,
-		false,
-		temp,
-		true
-	);
-	return true;
+	// TODO: Not sure if this is the right way to do it
+	// for (AIndicator* x : Indicators)
+	// {
+	// 	Indicators.Remove(x);
+	// 	x->Destroy();
+	// }
 }
 
 TSubclassOf<AChessPiece> ACH_GameMode::ColorTypeToClass(PieceColor Color, PieceType Type)
@@ -463,5 +334,157 @@ TSubclassOf<AChessPiece> ACH_GameMode::ColorTypeToClass(PieceColor Color, PieceT
 		}
 	}
 	return nullptr;
+}
+
+void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D Direction,
+	uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves, PieceColor PlayerColor)
+{
+	FVector2D TargetPosition = Position + Direction;
+	// Check if TargetPosition is out of bounds
+	if (TargetPosition[0] < 0 || TargetPosition[0] > 7) return;
+	if (TargetPosition[1] < 0 || TargetPosition[1] > 7) return;
+
+	// Check if TargetPosition is free
+	// AChessPiece* TargetPiece = *ChessPieceMap.Find(TargetPosition);
+	AChessPiece const* TargetPiece = GetChessPieceAt(TargetPosition);
+	if (TargetPiece == nullptr)
+	{
+		Moves->Add(TargetPosition);
+		ExploreDirection(TargetPosition, Direction, MaxLength - 1, CanCapture, Moves, PlayerColor);
+	}
+	else {
+		// If TargetPosition is occupied by a ChessPiece, it can be captured only if
+		// it's owned by the opponent and the CanCapture flag is set to true
+		if (CanCapture && TargetPiece->GetColor() != PlayerColor)
+			Moves->Add(TargetPosition);
+		return;
+	}
+}
+
+// TODO: TEST THIS
+AChessPiece* ACH_GameMode::GetChessPieceAt(FVector2D Position)
+{
+	if (ChessPieceMap.Contains(Position))
+		return ChessPieceMap[Position];
+	return nullptr;
+}
+
+// TODO: TEST THIS
+bool ACH_GameMode::RemoveChessPiece(FVector2D Position)
+{
+	/*
+	AChessPiece** x = ChessPieceMap.Find(Position);
+	if (x == nullptr) return true;
+	ChessPieceMap.Remove(Position);
+	return (*x)->Destroy();
+	*/
+	AChessPiece* x = GetChessPieceAt(Position);
+	if (x == nullptr) return true;
+	return x->Destroy();
+}
+
+// TODO: TEST THIS
+AChessPiece* ACH_GameMode::PutChessPiece(PieceType Type, PieceColor Color, FVector2D Position)
+{
+	if (ChessPieceMap.Contains(Position)) return nullptr;
+
+	// Spawn ChessPiece in the scene
+	TSubclassOf<AChessPiece> PieceClass = ColorTypeToClass(Color, Type);
+	if (PieceClass == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Missing ChessPiece class"));
+	}
+	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
+		PieceClass,
+		FVector(Position[1] + 0.5, Position[0] + 0.5, 0.001) * ChessPieceSize * 100 * TileSize/ChessPieceSize, // FOR SOME REASON THIS IS NEEDED
+		FRotator::ZeroRotator
+	);
+
+	// Set up ChessPiece
+	ChessPiece->Setup(Type, Color);
+
+	// Add ChessPiece to ChessPieceMap
+	// ChessPiece->SetActorScale3D(FVector(1.0, 1.0, 0.1));
+	ChessPieceMap.Add(Position, ChessPiece);
+
+	return ChessPiece;
+}
+
+// TODO: TEST THIS
+bool ACH_GameMode::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
+{
+	if (GetChessPieceAt(OldPosition) == nullptr) return true;
+	if (GetChessPieceAt(NewPosition) != nullptr) return false;
+
+	// Update the ChessPieceMap
+	AChessPiece* ChessPiece = GetChessPieceAt(OldPosition);
+	PutChessPiece(ChessPiece->GetType(), ChessPiece->GetColor(), NewPosition);
+	RemoveChessPiece(OldPosition);
+
+	// Move Actor in the new position of the scene
+	FHitResult temp; // needed by K2_SetActorLocation, will get ignored
+	ChessPiece->K2_SetActorLocation(
+		FVector(NewPosition[0], NewPosition[1], 0.001) * TileSize,
+		false,
+		temp,
+		true
+	);
+	return true;
+	/*
+	if (ChessPieceMap.Contains(NewPosition)) return false;
+
+	// Update entry from ChessPieceMap
+	AChessPiece* OldPiece = GetChessPieceAt(OldPosition);
+	if (OldPiece == nullptr) return false;
+
+	PutChessPiece(OldPiece->GetType(), OldPiece->GetColor(), NewPosition);
+	// ChessPieceMap[NewPosition] = ChessPieceMap[OldPosition];
+	ChessPieceMap.Remove(OldPosition);
+	*/
+}
+
+// TODO: TEST THIS
+AIndicator* ACH_GameMode::PutIndicator(FVector2D StartPosition, FVector2D EndPosition)
+{
+	// Detect the type of Indicator based on the StartPosition, EndPosition,
+	// and the Chessboard's state
+	UClass* IndicatorClass;
+	MoveType Type;
+
+	// PROMOTION === StartPosition and EndPosition are the same
+	if (StartPosition == EndPosition)
+	{
+		IndicatorClass = Cast<UClass>(PromoteIndicatorClass);
+		Type = MoveType::PROMOTE;
+	}
+	else
+	{
+		// MOVE === EndPosition is empty
+		if (GetChessPieceAt(EndPosition) == nullptr)
+		{
+			IndicatorClass = Cast<UClass>(MoveIndicatorClass);
+			Type = MoveType::MOVE;
+		}
+		else
+		// CAPTURE === EndPosition is not empty
+		{
+			IndicatorClass = Cast<UClass>(CaptureIndicatorClass);
+			Type = MoveType::CAPTURE;
+		}
+	}
+
+	// Once the type of Indicator is Determined, create the Indicator
+	if (IndicatorClass == nullptr)
+		UE_LOG(LogTemp, Error, TEXT("Missing Indicator class"));
+
+	AIndicator* Indicator = GetWorld()->SpawnActor<AIndicator>(
+		IndicatorClass,
+		FVector(EndPosition[0] + 0.5, EndPosition[1] + 0.5, 0.002) * TileSize * 100,
+		FRotator::ZeroRotator
+	);
+
+	// Set up Indicator
+	Indicator->Setup(Type, StartPosition, EndPosition);
+	return Indicator;
 }
 

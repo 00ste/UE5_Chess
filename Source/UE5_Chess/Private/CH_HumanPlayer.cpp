@@ -111,13 +111,14 @@ void ACH_HumanPlayer::OnClick()
 			GameMode->DoMove(HitIndicator);
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
-			IsMyTurn = false;
+			// TODO: REMOVE THIS (DEBUG)
+			// IsMyTurn = false;
 			return;
 		}
 
 		// If an empty Tile or a BLACK ChessPiece was clicked, deselect currently
 		// selected ChessPiece and remove all Indicators
-		const AChessPiece* HitPiece = GameMode->GetChessPieceAt(HitGridPos);
+		const AChessPiece* HitPiece = GameMode->GetConstChessPieceAt(HitGridPos);
 		if (HitPiece == nullptr || HitPiece->GetColor() == PieceColor::PBLACK)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));

@@ -10,39 +10,6 @@
 #include "Indicator.h"
 #include "CH_GameMode.generated.h"
 
-/*
-TODO: structure and rewrite classes for safety and test!!
-
-* BeginPlay
-
-PUBLIC
-#GAMEMODE
-+ ACH_Gamemode
-+ GetTileSize
-+ PrepareChessboard
-+ TurnNextPlayer
-+ DoMove
-+ ShowLegalMoves
-#CHESSPIECE OPERATIONS
-+ GetConstChessPieceAt x
-+ RemoveAllChessPieces x
-#INDICATOR OPERATIONS
-+ GetIndicatorForEndPos x
-+ RemoveAllIndicators x
-
-PRIVATE
-#GAMEMODE
-- (Fields)
-- ColorTypeToClass
-- ExploreDirection
-#CHESSPIECE OPERATIONS
-- GetChessPieceAt x
-- PutChessPiece x
-- RemoveChessPiece x
-- MoveChessPiece x
-#INDICATOR OPERATIONS
-- PutIndicator x
-*/
 
 UCLASS()
 class UE5_CHESS_API ACH_GameMode : public AGameModeBase
@@ -196,9 +163,8 @@ private:
 
 	// Moves a ChessPiece from one Position to another,
 	// returning true if the ChessPiece was moved
-	// successfully, returns false if there was already
-	// another ChessPiece in NewPosition or if there was
-	// no piece in OldPosition
+	// successfully, returns false if there was no piece
+	// in the OldPosition
 	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
 	bool MoveChessPiece(FVector2D OldPosition,
 		FVector2D NewPosition);

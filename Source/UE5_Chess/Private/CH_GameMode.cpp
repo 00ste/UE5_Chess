@@ -15,13 +15,13 @@ void ACH_GameMode::BeginPlay()
 	IsGameOver = false;
 	// The Chessboard will be aligned to the left, so there will be
 	// an offset along the x-axis
-	double XOffset = 0.0;
+	double XOffset = 290.0;
 
 	// Init players and add to list
 	FVector CameraPosition = {
-		4 * TileSize * 100 + XOffset,
 		4 * TileSize * 100,
-		1000.0f
+		4 * TileSize * 100 + XOffset,
+		700.0f
 	};
 	ACH_HumanPlayer* HumanPlayer = Cast<ACH_HumanPlayer>(*TActorIterator<ACH_HumanPlayer>(GetWorld()));
 	HumanPlayer->SetActorLocationAndRotation(CameraPosition, FRotationMatrix::MakeFromX(FVector(0, 0, -1)).Rotator());

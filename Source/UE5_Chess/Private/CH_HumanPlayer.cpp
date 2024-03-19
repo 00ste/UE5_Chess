@@ -71,6 +71,7 @@ void ACH_HumanPlayer::OnClick()
 	if (Hit.bBlockingHit && IsMyTurn) {
 		// Get hit position expressed in grid coordinates
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+
 		double TileSize = GameMode->GetTileSize();
 		// !! 100 scale factor is needed here too
 		// TODO: Fix order of coordinates and/or define more strictly the coordinate system
@@ -80,26 +81,7 @@ void ACH_HumanPlayer::OnClick()
 		};
 
 		// TODO: remove this (debug)
-		UE_LOG(LogTemp, Error, TEXT("Clicked at position (%f, %f)"), HitGridPos[0], HitGridPos[1]);
-
-		// Check that the position is in the grid
-		/*
-		if (HitGridPos[0] < 0
-			|| HitGridPos[0] > 7
-			|| HitGridPos[1] < 0
-			|| HitGridPos[1] > 7)
-			return;
-		*/
-
-		// TODO: remove this (debug)
-		/*
-		FString Message = "Clicked position (";
-		Message.Append(FString::SanitizeFloat(HitGridPos[0]));
-		Message.Append(", ");
-		Message.Append(FString::SanitizeFloat(HitGridPos[1]));
-		Message.Append(")");
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, Message);
-		*/
+		// UE_LOG(LogTemp, Error, TEXT("Clicked at position (%f, %f)"), HitGridPos[0], HitGridPos[1]);
 
 		// If an Indicator was clicked, the move gets executed and the turn ends,
 		// then the currently selected ChessPiece is deselected and all Indicators
@@ -113,6 +95,14 @@ void ACH_HumanPlayer::OnClick()
 			GameMode->RemoveAllIndicators();
 			// TODO: REMOVE THIS (DEBUG)
 			// IsMyTurn = false;
+
+			// TODO: Remove this (debug)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Checking for check..."));
+			if (GameMode->CheckCheck(PBLACK))
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Black is in Check!!"));
+			}
+
 			return;
 		}
 
@@ -124,6 +114,7 @@ void ACH_HumanPlayer::OnClick()
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
+
 			return;
 		}
 		// When clicking on a White ChessPiece, it becomes the currently selected ChessPiece
@@ -132,7 +123,7 @@ void ACH_HumanPlayer::OnClick()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
 			SelectedPosition = HitGridPos;
-			GameMode->ShowLegalMoves(SelectedPosition);
+			GameMode->ShowIndicatorsForMoves(GameMode->CalculateLegalMoves(SelectedPosition));
 			return;
 		}
 	}

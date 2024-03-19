@@ -118,16 +118,16 @@ void ACH_GameMode::DoMove(AIndicator const* Indicator)
 	RemoveAllIndicators();
 }
 
-void ACH_GameMode::ShowLegalMoves(FVector2D Position)
+TArray<TArray<FVector2D>> ACH_GameMode::CalculateLegalMoves(FVector2D Position)
 {
 	RemoveAllIndicators();
 
 	// Get the ChessPiece and check that it's valid
 	// AChessPiece* Piece = *ChessPieceMap.Find(Position);
 	AChessPiece const* Piece = GetChessPieceAt(Position);
-	if (Piece == nullptr) return;
-	if (Piece->GetColor() == PieceColor::PCNONE) return;
-	if (Piece->GetType() == PieceType::PTNONE) return;
+	if (Piece == nullptr) return TArray<TArray<FVector2D>>();
+	if (Piece->GetColor() == PieceColor::PCNONE) return TArray<TArray<FVector2D>>();
+	if (Piece->GetType() == PieceType::PTNONE) return TArray<TArray<FVector2D>>();
 
 	// This will contain all legal moves stored FVector2D
 	// objects representing the end position of the move
@@ -243,9 +243,51 @@ void ACH_GameMode::ShowLegalMoves(FVector2D Position)
 		);
 	}
 	
-	// Spawn the Indicators
+	// Generate the final TArray of moves including
+	// start position (Position) and EndPosition
+	// TODO: (optimisation) use array of start-end positions from the beginning
+	TArray<TArray<FVector2D>> Result;
 	for (FVector2D EndPosition : Moves)
-		Indicators.Add(PutIndicator(Position, EndPosition));
+		Result.Add({Position, EndPosition});
+	return Result;
+}
+
+TArray<TArray<FVector2D>> ACH_GameMode::CalculateAllMoves(PieceColor Color)
+{
+	TArray<TArray<FVector2D>> Moves;
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+	for (FVector2D Position : Positions)
+	{
+		if (GetChessPieceAt(Position)->GetColor() == Color)
+		{
+			Moves.Append(CalculateLegalMoves(Position));
+		}
+	}
+
+	return Moves;
+}
+
+bool ACH_GameMode::CheckCheck(PieceColor Color)
+{
+	PieceColor OtherColor = Color == PWHITE ? PBLACK : PWHITE;
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+	for (FVector2D Position : Positions)
+	{
+		if (GetChessPieceAt(Position)->GetColor() == OtherColor)
+		{
+			for (TArray<FVector2D> Move : CalculateLegalMoves(Position))
+			{
+				AChessPiece* Piece = GetChessPieceAt(Move[1]);
+				if (Piece != nullptr && Piece->GetType() == KING)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 AChessPiece const* ACH_GameMode::GetConstChessPieceAt(FVector2D Position) const
@@ -272,6 +314,14 @@ AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
 			return Indicator;
 	}
 	return nullptr;
+}
+
+void ACH_GameMode::ShowIndicatorsForMoves(const TArray<TArray<FVector2D>>& Moves)
+{
+	for (auto Move : Moves)
+	{
+		Indicators.Add(PutIndicator(Move[0], Move[1]));
+	}
 }
 
 void ACH_GameMode::RemoveAllIndicators()

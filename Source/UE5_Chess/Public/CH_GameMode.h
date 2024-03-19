@@ -42,9 +42,16 @@ public:
 	// all Indicators afterwards
 	void DoMove(AIndicator const* Indicator);
 
-	// Spawns Indicators on the Chessboard that indicate
-	// where a piece at Position can be moved by the player
-	void ShowLegalMoves(FVector2D Position);
+	// Calculates all the possible legal moves for a ChessPiece
+	// at the given Position
+	TArray<TArray<FVector2D>> CalculateLegalMoves(FVector2D Position);
+
+	// Calculates all the possible legale moves for all ChessPieces
+	// with a given Color
+	TArray<TArray<FVector2D>> CalculateAllMoves(PieceColor Color);
+
+	// Checks if the given player is in a Check state
+	bool CheckCheck(PieceColor Color);
 
 	// ===== CHESSPIECE OPERATIONS ===== //
 
@@ -56,6 +63,9 @@ public:
 	void RemoveAllChessPieces();
 	
 	// ===== INDICATOR OPERATIONS ===== //
+
+	// Spawns Indicator Actors for the given TArray of moves.
+	void ShowIndicatorsForMoves(const TArray<TArray<FVector2D>>& Moves);
 
 	// Removes all Indicators from the Chessboard
 	void RemoveAllIndicators();

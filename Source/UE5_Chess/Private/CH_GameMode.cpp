@@ -108,14 +108,50 @@ void ACH_GameMode::PrepareChessboard()
 
 void ACH_GameMode::TurnNextPlayer()
 {
+	// Find the next player
 	CurrentPlayer = (CurrentPlayer + 1) % 2;
-	Players[CurrentPlayer]->OnTurn();
+
+	// If the player is Checkmated end the game
+	PieceColor CurrentPlayerColor = CurrentPlayer == 0 ? PWHITE : PBLACK;
+	if (CheckCheckmate(CurrentPlayerColor))
+	{
+		Players[CurrentPlayer]->OnLose();
+		Players[1 - CurrentPlayer]->OnWin();
+	}
+	// Otherwise let their turn begin
+	else
+	{
+		Players[CurrentPlayer]->OnTurn();
+	}
 }
 
-void ACH_GameMode::DoMove(AIndicator const* Indicator)
+void ACH_GameMode::DoMove(TArray<FVector2D> Move)
 {
-	MoveChessPiece(Indicator->GetStartPosition(), Indicator->GetEndPosition());
-	RemoveAllIndicators();
+	MoveChessPiece(Move[0], Move[1]);
+	MovesHistory.Add(Move);
+}
+
+bool ACH_GameMode::DoesMoveUncheck(TArray<FVector2D> Move)
+{
+	if (GetChessPieceAt(Move[0]) == nullptr)
+		return false;
+
+	// Try the move without moving any AChessPiece Actors
+	// Keep track of the captured ChessPiece so it can be
+	// restored after the check is finished
+	AChessPiece* CapturedChessPiece = ChessPieceMap.FindAndRemoveChecked(Move[1]);
+	AChessPiece* MovedChessPiece = ChessPieceMap.FindAndRemoveChecked(Move[0]);
+	ChessPieceMap.Add(Move[1], MovedChessPiece);
+
+	// Check for a Check state
+	bool bResult = CheckCheck(MovedChessPiece->GetColor());
+
+	// Undo the move
+	ChessPieceMap.Remove(Move[1]);
+	if (CapturedChessPiece != nullptr) ChessPieceMap.Add(Move[1], CapturedChessPiece);
+	ChessPieceMap.Add(Move[0], MovedChessPiece);
+
+	return bResult;
 }
 
 TArray<TArray<FVector2D>> ACH_GameMode::CalculateLegalMoves(FVector2D Position)
@@ -288,6 +324,23 @@ bool ACH_GameMode::CheckCheck(PieceColor Color)
 		}
 	}
 	return false;
+}
+
+bool ACH_GameMode::CheckCheckmate(PieceColor Color)
+{
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+	for (FVector2D Position : Positions)
+	{
+		if (GetChessPieceAt(Position)->GetColor() == Color)
+		{
+			for (TArray<FVector2D> Move : CalculateLegalMoves(Position))
+			{
+				if (DoesMoveUncheck(Move)) return true;
+			}
+		}
+	}
+	return true;
 }
 
 AChessPiece const* ACH_GameMode::GetConstChessPieceAt(FVector2D Position) const

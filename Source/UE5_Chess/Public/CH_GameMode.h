@@ -38,9 +38,13 @@ public:
 	// and calls that player's OnTurn() method
 	void TurnNextPlayer();
 
-	// Executes the move indicated by the Indicator and removes
-	// all Indicators afterwards
-	void DoMove(AIndicator const* Indicator);
+	// Executes the Move given by changing the record in
+	// ChessPieceMap and moving the AChessPiece Actors.
+	void DoMove(TArray<FVector2D> Move);
+
+	// Returns true if the Move results in a non-Check state,
+	// returns false otherwise
+	bool DoesMoveUncheck(TArray<FVector2D> Move);
 
 	// Calculates all the possible legal moves for a ChessPiece
 	// at the given Position
@@ -52,6 +56,12 @@ public:
 
 	// Checks if the given player is in a Check state
 	bool CheckCheck(PieceColor Color);
+
+	// Checks of the given player is in a Checkmate state
+	// if he is, then the OnWin and OnLose methods are
+	// called for the winner and loser players respectively
+	bool CheckCheckmate(PieceColor Color);
+
 
 	// ===== CHESSPIECE OPERATIONS ===== //
 
@@ -96,6 +106,9 @@ private:
 	// for the currently selected ChessPiece
 	UPROPERTY(Transient)
 	TArray<AIndicator*> Indicators;
+
+	// History of moves
+	TArray<TArray<FVector2D>> MovesHistory;
 
 	// Subclasses
 	// Chessboard

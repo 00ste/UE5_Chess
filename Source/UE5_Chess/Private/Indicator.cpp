@@ -11,26 +11,14 @@ AIndicator::AIndicator()
 
 }
 
-void AIndicator::Setup(MoveType Type_, FVector2D StartPos, FVector2D EndPos)
+void AIndicator::BindToMove(FChessMove Move_)
 {
-	Type = Type_;
-	StartPosition = StartPos;
-	EndPosition = EndPos;
+	Move = Move_;
 }
 
-MoveType AIndicator::GetType() const
+FChessMove AIndicator::GetMove() const
 {
-	return Type;
-}
-
-FVector2D AIndicator::GetStartPosition() const
-{
-	return StartPosition;
-}
-
-FVector2D AIndicator::GetEndPosition() const
-{
-	return EndPosition;
+	return Move;
 }
 
 // Called when the game starts or when spawned
@@ -40,3 +28,23 @@ void AIndicator::BeginPlay()
 
 }
 
+FChessMove::FChessMove()
+{
+	this->StartPosition = FVector2D(-6, -9);
+	this->EndPosition = FVector2D(-6, -9);
+	this->CapturePosition = FVector2D(-6, -9);
+	this->Type = MoveType::NONE;
+}
+
+FChessMove::FChessMove(FVector2D StartPosition, FVector2D EndPosition, FVector2D CapturePosition, MoveType Type)
+{
+	this->StartPosition = StartPosition;
+	this->EndPosition = EndPosition;
+	this->CapturePosition = CapturePosition;
+	this->Type = Type;
+}
+
+FString FChessMove::GenerateSAN()
+{
+	return FString();
+}

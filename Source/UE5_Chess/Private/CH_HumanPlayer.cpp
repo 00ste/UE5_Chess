@@ -81,7 +81,7 @@ void ACH_HumanPlayer::OnClick()
 		};
 
 		// TODO: remove this (debug)
-		// UE_LOG(LogTemp, Error, TEXT("Clicked at position (%f, %f)"), HitGridPos[0], HitGridPos[1]);
+		UE_LOG(LogTemp, Error, TEXT("Clicked at position (%f, %f)"), HitGridPos[0], HitGridPos[1]);
 
 		// If an Indicator was clicked, the move gets executed and the turn ends,
 		// then the currently selected ChessPiece is deselected and all Indicators
@@ -90,7 +90,7 @@ void ACH_HumanPlayer::OnClick()
 		if (HitIndicator != nullptr)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Move selected!"));
-			GameMode->DoMove(TArray<FVector2D>({ HitIndicator->GetStartPosition(), HitIndicator->GetEndPosition() }));
+			GameMode->DoMove(HitIndicator->GetMove());
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
 			// TODO: REMOVE THIS (DEBUG)
@@ -108,7 +108,7 @@ void ACH_HumanPlayer::OnClick()
 
 		// If an empty Tile or a BLACK ChessPiece was clicked, deselect currently
 		// selected ChessPiece and remove all Indicators
-		const AChessPiece* HitPiece = GameMode->GetConstChessPieceAt(HitGridPos);
+ 		const AChessPiece* HitPiece = GameMode->GetChessPieceAt(HitGridPos);
 		if (HitPiece == nullptr || HitPiece->GetColor() == PieceColor::PBLACK)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
@@ -123,7 +123,10 @@ void ACH_HumanPlayer::OnClick()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
 			SelectedPosition = HitGridPos;
-			GameMode->ShowIndicatorsForMoves(GameMode->CalculateLegalMoves(SelectedPosition));
+			for (FChessMove Move : GameMode->CalculateLegalMoves(SelectedPosition))
+			{
+				GameMode->AddNewIndicator(Move);
+			}
 			return;
 		}
 	}

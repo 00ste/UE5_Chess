@@ -29,7 +29,7 @@ public:
 	
 	// Returns the TileSize
 	double GetTileSize() const;
-
+	
 	// Prepares the Chessboard by placing each ChessPiece
 	// in the correct Position
 	void PrepareChessboard();
@@ -40,19 +40,19 @@ public:
 
 	// Executes the Move given by changing the record in
 	// ChessPieceMap and moving the AChessPiece Actors.
-	void DoMove(TArray<FVector2D> Move);
+	void DoMove(FChessMove Move);
 
 	// Returns true if the Move results in a non-Check state,
 	// returns false otherwise
-	bool DoesMoveUncheck(TArray<FVector2D> Move);
+	bool DoesMoveUncheck(FChessMove Move);
 
 	// Calculates all the possible legal moves for a ChessPiece
 	// at the given Position
-	TArray<TArray<FVector2D>> CalculateLegalMoves(FVector2D Position);
+	TArray<FChessMove> CalculateLegalMoves(FVector2D Position);
 
 	// Calculates all the possible legale moves for all ChessPieces
 	// with a given Color
-	TArray<TArray<FVector2D>> CalculateAllMoves(PieceColor Color);
+	TArray<FChessMove> CalculateAllMoves(PieceColor Color);
 
 	// Checks if the given player is in a Check state
 	bool CheckCheck(PieceColor Color);
@@ -65,17 +65,32 @@ public:
 
 	// ===== CHESSPIECE OPERATIONS ===== //
 
-	// Returns a pointer to a const ChessPiece at the specified Position,
+	// Returns a pointer to the ChessPiece at the specified Position,
+	// Returns nullptr if there is no ChessPiece at that Position
+	// (Wrapper of AChessboard::GetChessPieceAt)
+	AChessPiece* GetChessPieceAt(FVector2D Position);
+
+	/*
+	// Returns a const pointer to a ChessPiece at the specified Position,
 	// Returns nullptr if there is no ChessPiece at that Position
 	AChessPiece const* GetConstChessPieceAt(FVector2D Position) const;
 
 	// Removes all ChessPieces from the Chessboard
 	void RemoveAllChessPieces();
+	*/
 	
 	// ===== INDICATOR OPERATIONS ===== //
-
-	// Spawns Indicator Actors for the given TArray of moves.
-	void ShowIndicatorsForMoves(const TArray<TArray<FVector2D>>& Moves);
+	
+	// Creates a new indicator on the EndPosition representing
+	// a possible move from StartPosition to EndPosition, adding
+	// it to the internal TArray of Indicators.
+	// Returns a pointer to the newly spawned Indicator, or nullptr
+	// if a different Indicator existed with the same EndPosition.
+	// The type of the Indicator will be calculated as follows:
+	// - PROMOTE Indicator if StartPosition == EndPosition
+	// - MOVE Indicator if the EndPosition is free
+	// - CAPTURE Indicator if the EndPosition is occupied
+	AIndicator* AddNewIndicator(FChessMove Move);
 
 	// Removes all Indicators from the Chessboard
 	void RemoveAllIndicators();
@@ -94,9 +109,11 @@ private:
 
 	AChessboard* Chessboard;
 
+	/*
 	// Scale factors
 	double TileSize;
 	double ChessPieceSize;
+	*/
 
 	// Map that stores the ChessPieces on the Chessboard
 	UPROPERTY(Transient)
@@ -108,38 +125,12 @@ private:
 	TArray<AIndicator*> Indicators;
 
 	// History of moves
-	TArray<TArray<FVector2D>> MovesHistory;
+	TArray<FChessMove> MovesHistory;
 
 	// Subclasses
 	// Chessboard
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AChessboard> ChessboardClass;
-	// Black ChessPieces
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackBishopClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackKingClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackKnightClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackQueenClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackPawnClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> BlackRookClass;
-	// White ChessPieces
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhiteBishopClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhiteKingClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhiteKnightClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhiteQueenClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhitePawnClass;
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AChessPiece> WhiteRookClass;
 	// Indicators
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AIndicator> MoveIndicatorClass;
@@ -148,9 +139,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AIndicator> PromoteIndicatorClass;
 
-	// Utility function to map a PieceColor and PieceType
-	// to a UClass* of a ChessPiece
-	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type);
+	// Utility function to map enum parameters to TSubclasses
+	TSubclassOf<AIndicator> IndicatorTypeToClass(MoveType Type) const;
 
 	// Recursively explores a line of Tiles starting from Position
 	// along Direction, and stops either when an obstacle is found
@@ -158,16 +148,12 @@ private:
 	// are all appended to Moves. If CanCapture is true, a Tile that
 	// contains a ChessPiece owned by the opponent will count as a
 	// legal move (capturing).
-	void ExploreDirection(FVector2D Position, FVector2D Direction,
-		uint32 MaxLength, bool CanCapture, TArray<FVector2D>* Moves,
-		PieceColor PlayerColor);
+	void ExploreDirection(FVector2D Position, FVector2D RootPosition,
+		FVector2D Direction, uint32 MaxLength, bool CanCapture,
+		TArray<FChessMove>* Moves, PieceColor PlayerColor);
 
 	// ===== CHESSPIECE OPERATIONS ===== //
-
-	// Returns a pointer to the ChessPiece at the specified Position,
-	// Returns nullptr if there is no ChessPiece at that Position
-	AChessPiece* GetChessPieceAt(FVector2D Position);
-
+	/*
 	// Puts a new ChessPiece of the given PieceType and
 	// PieceColor at the given Position, returning a pointer
 	// to the new ChessPiece that was placed, or nullptr if
@@ -175,7 +161,8 @@ private:
 	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
 	AChessPiece* PutChessPiece(PieceType type,
 		PieceColor color, FVector2D Position);
-
+	*/
+	/*
 	// Removes the ChessPiece at the given Position from
 	// the Chessboard and Destroys it. Does nothing if
 	// there's no ChessPiece at the given Position.
@@ -183,7 +170,8 @@ private:
 	// successfully or if there was no ChessPiece at the
 	// given Position, otherwise returns false.
 	bool RemoveChessPiece(FVector2D Position);
-
+	*/
+	/*
 	// Moves a ChessPiece from one Position to another,
 	// returning true if the ChessPiece was moved
 	// successfully, returns false if there was no piece
@@ -191,17 +179,5 @@ private:
 	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
 	bool MoveChessPiece(FVector2D OldPosition,
 		FVector2D NewPosition);
-
-	// ===== INDICATOR OPERATIONS ===== //
-
-	// Creates a new indicator on the EndPosition representing
-	// a possible move from StartPosition to EndPosition, adding
-	// it to the internal TArray of Indicators.
-	// Returns a pointer to the newly spawned Indicator, or nullptr
-	// if a different Indicator existed with the same EndPosition.
-	// The type of the Indicator will be calculated as follows:
-	// - PROMOTE Indicator if StartPosition == EndPosition
-	// - MOVE Indicator if the EndPosition is free
-	// - CAPTURE Indicator if the EndPosition is occupied
-	AIndicator* PutIndicator(FVector2D StartPosition, FVector2D EndPosition);
+	*/
 };

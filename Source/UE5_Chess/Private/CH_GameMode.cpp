@@ -131,8 +131,12 @@ void ACH_GameMode::TurnNextPlayer()
 
 void ACH_GameMode::DoMove(FChessMove Move)
 {
-	Chessboard->MoveChessPiece(Move.StartPosition, Move.EndPosition);
-	MovesHistory.Add(Move);
+	Chessboard->MoveChessPiece(
+		Move.StartPosition,
+		Move.EndPosition,
+		// CAPTURE is the only move type that is expected to overwrite a ChessPiece
+		Move.Type == MoveType::CAPTURE);
+	MovesHistory.Push(Move);
 }
 
 bool ACH_GameMode::DoesMoveUncheck(FChessMove Move)
@@ -156,6 +160,55 @@ bool ACH_GameMode::DoesMoveUncheck(FChessMove Move)
 	ChessPieceMap.Add(Move.StartPosition, MovedChessPiece);
 
 	return bResult;
+}
+
+bool ACH_GameMode::UndoLastMove()
+{
+	FChessMove LastMove = MovesHistory.Pop();
+	bool bSuccess = true;
+
+	switch (LastMove.Type)
+	{
+	case MoveType::MOVE:
+		bSuccess = Chessboard->MoveChessPiece(
+			LastMove.EndPosition,
+			LastMove.StartPosition,
+			// undoing a move isn't expected to overwrite
+			false
+		);
+		break;
+	case MoveType::CAPTURE:
+		// Move the moved ChessPiece back
+		bSuccess = Chessboard->MoveChessPiece(
+			LastMove.EndPosition,
+			LastMove.StartPosition,
+			// undoing a move isn't expected to overwrite
+			false
+		);
+
+		// Restore the captured ChessPiece
+		if (bSuccess)
+		{
+			AChessPiece* RestoredPiece = Chessboard->GetLastCapturedChessPiece();
+			if (RestoredPiece == nullptr) return false;
+			Chessboard->AddNewChessPiece(
+				RestoredPiece->GetType(),
+				RestoredPiece->GetColor(),
+				LastMove.CapturePosition
+			);
+		}
+
+		break;
+		// TODO: Handle PROMOTE and CASTLE moves
+	}
+
+	// Restore MoveHistory if something went wrong
+	if (!bSuccess)
+	{
+		MovesHistory.Push(LastMove);
+		return false;
+	}
+	return true;
 }
 
 TArray<FChessMove> ACH_GameMode::CalculateLegalMoves(FVector2D Position)
@@ -350,6 +403,10 @@ bool ACH_GameMode::CheckCheckmate(PieceColor Color)
 		}
 	}
 	return true;
+}
+void ACH_GameMode::UpdateChessboard()
+{
+	Chessboard->UpdateChessboard();
 }
 /*
 AChessPiece const* ACH_GameMode::GetConstChessPieceAt(FVector2D Position) const

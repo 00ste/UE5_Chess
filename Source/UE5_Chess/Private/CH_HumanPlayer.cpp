@@ -76,8 +76,8 @@ void ACH_HumanPlayer::OnClick()
 		// !! 100 scale factor is needed here too
 		// TODO: Fix order of coordinates and/or define more strictly the coordinate system
 		FVector2D HitGridPos = {
-			FMath::Floor(Hit.ImpactPoint[1] / TileSize / 100),
-			FMath::Floor(Hit.ImpactPoint[0] / TileSize / 100)
+			FMath::Floor(Hit.ImpactPoint[1] / TileSize),
+			FMath::Floor(Hit.ImpactPoint[0] / TileSize)
 		};
 
 		// TODO: remove this (debug)
@@ -103,6 +103,7 @@ void ACH_HumanPlayer::OnClick()
 				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Black is in Check!!"));
 			}
 
+			GameMode->UpdateChessboard();
 			return;
 		}
 

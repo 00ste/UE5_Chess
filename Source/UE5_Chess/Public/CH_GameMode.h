@@ -46,6 +46,12 @@ public:
 	// returns false otherwise
 	bool DoesMoveUncheck(FChessMove Move);
 
+	// Undoes the last ChessMove from the MoveHistory
+	// If the Move was successfully undone returns true and
+	// removes the ChessMove from MoveHistory, otherwise
+	// returns false and leaves MoveHistory untouched
+	bool UndoLastMove();
+
 	// Calculates all the possible legal moves for a ChessPiece
 	// at the given Position
 	TArray<FChessMove> CalculateLegalMoves(FVector2D Position);
@@ -62,6 +68,8 @@ public:
 	// called for the winner and loser players respectively
 	bool CheckCheckmate(PieceColor Color);
 
+	// Wrapper for AChessboard::UpdateChessboard()
+	void UpdateChessboard();
 
 	// ===== CHESSPIECE OPERATIONS ===== //
 

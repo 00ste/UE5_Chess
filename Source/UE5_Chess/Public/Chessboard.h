@@ -40,8 +40,8 @@ public:
 	AChessPiece* AddNewChessPiece(PieceType Type, PieceColor Color, FVector2D Position);
 
 	// Removes the ChessPiece at the given Position and saves it
-	// to a stack of removed ChessPieces
-	void RemoveChessPiece(FVector2D Position);
+	// to RemovedPieces
+	bool RemoveChessPiece(FVector2D Position);
 
 	// Deletes AND DESTROYS the ChessPiece at the given Position
 	// without saving it anywhere. Does nothing and returns true if there was
@@ -55,16 +55,18 @@ public:
 
 	// Moves the ChessPiece in the StartPosition to the EndPosition
 	// automatically removes any existing ChessPieces at the EndPosition.
-	// Does nothing and returns false if there's no ChessPiece at the
-	// StartPosition, otherwise returns true
-	bool MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition);
+	// If bCanOverwrite is true, any existing ChessPiece at the NewPosition
+	// will be removed and added to the RemovedHistory, returning true.
+	// If bCanOverwrite is false, if there is already a ChessPiece at the
+	// NewPosition false will be returned and nothing will happen.
+	bool MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition, bool bCanOverwrite);
 
 	// Returns a pointer to the ChessPiece at the given Position
 	AChessPiece* GetChessPieceAt(FVector2D Position);
 
 	// Restores the last captured ChessPiece. Returns false if there
 	// was no ChessPiece to restore, otherwise returns true
-	bool RestoreLastCapturedChessPiece();
+	AChessPiece* GetLastCapturedChessPiece();
 
 	// Moves all the AChessPiece Actors to the location they're assigned
 	// to in the ChessPieceMap and hides the AChessPiece Actors that have
@@ -87,8 +89,11 @@ private:
 	double TileSize;
 	double ChessPieceSize;
 
+	// History of removed ChessPieces
+	TArray<AChessPiece*> RemovedPieces;
+
 	// Height difference between Actors occupying the same position
-	const FVector HeightDiff = FVector(0, 0, 0.001);
+	const FVector HeightDiff = FVector(0, 0, 0.05);
 
 	// Map that stores the ATile Actors that make up the Chessboard
 	UPROPERTY(Transient)

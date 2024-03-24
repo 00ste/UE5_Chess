@@ -2,7 +2,7 @@
 
 
 AChessboard::AChessboard()
-	: TileSize(100.0)
+	: TileSize(100.0), RemovedPieces()
 {
 	// Set this actor NOT to call Tick() every frame.
 	PrimaryActorTick.bCanEverTick = false;
@@ -54,7 +54,7 @@ AChessPiece* AChessboard::AddNewChessPiece(PieceType Type, PieceColor Color, FVe
 	}
 	AChessPiece* ChessPiece = GetWorld()->SpawnActor<AChessPiece>(
 		PieceClass,
-		FVector(Position[1] + 0.5, Position[0] + 0.5, 0.001) * TileSize,
+		GridToRealPosition(Position, CHESSPIECE_ZINDEX),
 		FRotator::ZeroRotator
 	);
 
@@ -67,9 +67,15 @@ AChessPiece* AChessboard::AddNewChessPiece(PieceType Type, PieceColor Color, FVe
 	return ChessPiece;
 }
 
-void AChessboard::RemoveChessPiece(FVector2D Position)
+bool AChessboard::RemoveChessPiece(FVector2D Position)
 {
-	// TODO: Implement this
+	// Remove the record from ChessPieceMap
+	AChessPiece* ChessPiece = ChessPieceMap.FindAndRemoveChecked(Position);
+	if (ChessPiece == nullptr) return false;
+
+	// Add the ChessPiece to RemovedPiece
+	RemovedPieces.Push(ChessPiece);
+	return true;
 }
 
 bool AChessboard::DeleteChessPiece(FVector2D Position)
@@ -92,16 +98,16 @@ void AChessboard::DeleteAllChessPieces()
 	ChessPieceMap.Empty();
 }
 
-bool AChessboard::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
+bool AChessboard::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition, bool bCanOverwrite)
 {
 	if (GetChessPieceAt(OldPosition) == nullptr) return false;
 
-	// Remove any already existing ChessPieces in the NewPosition
+	// Handle any already existing ChessPieces in the NewPosition
 	AChessPiece* TempChessPiece = GetChessPieceAt(NewPosition);
 	if (TempChessPiece != nullptr)
 	{
-		// TODO: Implement RemoveChessPiece
-		RemoveChessPiece(NewPosition);
+		if (!bCanOverwrite) return false;
+		if (!RemoveChessPiece(NewPosition)) return false;
 	}
 
 	// Change the record inside the ChessPieceMap
@@ -109,16 +115,6 @@ bool AChessboard::MoveChessPiece(FVector2D OldPosition, FVector2D NewPosition)
 	ChessPieceMap.FindAndRemoveChecked(OldPosition);
 	ChessPieceMap.Add(NewPosition, TempChessPiece);
 	return true;
-
-	// // Move Actor in the new position of the scene
-	// // TODO: adjust position vector element order
-	// FHitResult temp; // needed by K2_SetActorLocation, will get ignored
-	// TempChessPiece->K2_SetActorLocation(
-	// 	FVector(NewPosition[0], NewPosition[1], 0.001) * TileSize,
-	//	false,
-	//	temp,
-	//	true
-	// );
 }
 
 AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position)
@@ -128,14 +124,21 @@ AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position)
 	return nullptr;
 }
 
-bool AChessboard::RestoreLastCapturedChessPiece()
+AChessPiece* AChessboard::GetLastCapturedChessPiece()
 {
-	// TODO: Implement this
-	return false;
+	return RemovedPieces.Pop();
 }
 
 void AChessboard::UpdateChessboard()
 {
+	// Delete all AChessPieces from RemovedPieces and empty the array
+	for (auto x : RemovedPieces)
+	{
+		x->Destroy();
+	}
+	RemovedPieces.Empty();
+
+	// Update positions of all remaining ChessPieces
 	TArray<FVector2D> Positions;
 	ChessPieceMap.GetKeys(Positions);
 
@@ -144,7 +147,7 @@ void AChessboard::UpdateChessboard()
 		AChessPiece* TempChessPiece = GetChessPieceAt(Position);
 		if (RealToGridPosition(TempChessPiece->GetActorLocation()) != Position)
 		{
-			// TODO: Try different movement types
+			// TODO: Try different movement types (animations etc..)
 			FHitResult* temp = nullptr; // needed by SetActorLocation, will get ignored
 			TempChessPiece->SetActorLocation(
 				GridToRealPosition(Position, CHESSPIECE_ZINDEX),

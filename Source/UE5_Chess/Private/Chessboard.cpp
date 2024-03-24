@@ -148,12 +148,8 @@ void AChessboard::UpdateChessboard()
 		if (RealToGridPosition(TempChessPiece->GetActorLocation()) != Position)
 		{
 			// TODO: Try different movement types (animations etc..)
-			FHitResult* temp = nullptr; // needed by SetActorLocation, will get ignored
 			TempChessPiece->SetActorLocation(
-				GridToRealPosition(Position, CHESSPIECE_ZINDEX),
-				false,
-				temp,
-				ETeleportType::TeleportPhysics
+				GridToRealPosition(Position, CHESSPIECE_ZINDEX)
 			);
 		}
 	}
@@ -214,16 +210,16 @@ void AChessboard::DeleteAllIndicators()
 FVector2D AChessboard::RealToGridPosition(FVector RealPosition)
 {
 	return FVector2D(
-		FMath::Floor(RealPosition[1] / TileSize),
-		FMath::Floor(RealPosition[0] / TileSize)
+		FMath::Floor(RealPosition[0] / TileSize),
+		FMath::Floor(RealPosition[1] / TileSize)
 	);
 }
 
 FVector AChessboard::GridToRealPosition(FVector2D GridPosition, uint32 ZIndex)
 {
 	return FVector(
-		GridPosition[1] + 0.5,
 		GridPosition[0] + 0.5,
+		GridPosition[1] + 0.5,
 		0.0
 	) * TileSize + ZIndex * HeightDiff;
 }

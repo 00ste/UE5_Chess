@@ -29,7 +29,6 @@ public:
 	AChessboard();
 
 	double GetTileSize() const;
-	double GetChessPieceSize() const;
 
 	// Called when an instance of this class is placed (in editor) or spawned
 	virtual void OnConstruction(const FTransform& Transform) override;

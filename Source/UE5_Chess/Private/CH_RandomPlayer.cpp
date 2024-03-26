@@ -2,6 +2,7 @@
 
 
 #include "CH_RandomPlayer.h"
+#include "CH_GameMode.h"
 
 // Sets default values
 ACH_RandomPlayer::ACH_RandomPlayer()
@@ -34,6 +35,14 @@ void ACH_RandomPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 void ACH_RandomPlayer::OnTurn()
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("AI turn!"));
+	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	TArray<FChessMove> AllMovesList = GameMode->CalculateAllFullyLegalMoves(PieceColor::PBLACK);
+	uint32 RandomIndex = FMath::Rand() % AllMovesList.Num();
+	GameMode->DoMove(AllMovesList[RandomIndex]);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
+	GameMode->UpdateChessboard();
+	GameMode->TurnNextPlayer();
 }
 
 void ACH_RandomPlayer::OnWin()

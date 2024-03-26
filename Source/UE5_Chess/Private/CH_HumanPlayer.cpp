@@ -73,8 +73,6 @@ void ACH_HumanPlayer::OnClick()
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
 
 		double TileSize = GameMode->GetTileSize();
-		// !! 100 scale factor is needed here too
-		// TODO: Fix order of coordinates and/or define more strictly the coordinate system
 		FVector2D HitGridPos = {
 			FMath::Floor(Hit.ImpactPoint[0] / TileSize),
 			FMath::Floor(Hit.ImpactPoint[1] / TileSize)
@@ -93,8 +91,7 @@ void ACH_HumanPlayer::OnClick()
 			GameMode->DoMove(HitIndicator->GetMove());
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
-			// TODO: REMOVE THIS (DEBUG)
-			// IsMyTurn = false;
+			IsMyTurn = false;
 
 			// TODO: Remove this (debug)
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Checking for check..."));
@@ -104,6 +101,7 @@ void ACH_HumanPlayer::OnClick()
 			}
 
 			GameMode->UpdateChessboard();
+			GameMode->TurnNextPlayer();
 			return;
 		}
 
@@ -124,7 +122,7 @@ void ACH_HumanPlayer::OnClick()
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
 			SelectedPosition = HitGridPos;
-			for (FChessMove Move : GameMode->CalculateLegalMoves(SelectedPosition))
+			for (FChessMove Move : GameMode->CalculateFullyLegalMoves(SelectedPosition))
 			{
 				GameMode->AddNewIndicator(Move);
 			}

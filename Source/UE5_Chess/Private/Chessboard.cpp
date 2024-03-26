@@ -44,6 +44,7 @@ void AChessboard::CreateChessboard()
 
 AChessPiece* AChessboard::AddNewChessPiece(PieceType Type, PieceColor Color, FVector2D Position)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Adding new ChessPiece of type %d and color %d at (%f, %f)"), Type, Color, Position[0], Position[1]);
 	if (ChessPieceMap.Contains(Position)) return nullptr;
 
 	// Spawn ChessPiece in the scene
@@ -73,7 +74,7 @@ bool AChessboard::RemoveChessPiece(FVector2D Position)
 	AChessPiece* ChessPiece = ChessPieceMap.FindAndRemoveChecked(Position);
 	if (ChessPiece == nullptr) return false;
 
-	// Add the ChessPiece to RemovedPiece
+	// Add the ChessPiece to RemovedPieces
 	RemovedPieces.Push(ChessPiece);
 	return true;
 }
@@ -127,6 +128,31 @@ AChessPiece* AChessboard::GetChessPieceAt(FVector2D Position)
 AChessPiece* AChessboard::GetLastCapturedChessPiece()
 {
 	return RemovedPieces.Pop();
+}
+
+bool AChessboard::RestoreLastCapturedChessPiece(FVector2D Position)
+{
+	if (RemovedPieces.Num() <= 0) return false;
+	if (GetChessPieceAt(Position) != nullptr) return false;
+
+	AChessPiece* ChessPiece = RemovedPieces.Pop();
+	ChessPieceMap.Add(Position, ChessPiece);
+	return true;
+}
+
+TArray<FVector2D> AChessboard::GetAllOwnedPositions(PieceColor Color) const
+{
+	TArray<FVector2D> Result;
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+
+	for (FVector2D Position : Positions)
+	{
+		AChessPiece* x = ChessPieceMap[Position];
+		if (x->GetColor() == Color)
+			Result.Add(Position);
+	}
+	return Result;
 }
 
 void AChessboard::UpdateChessboard()
@@ -196,6 +222,126 @@ TSubclassOf<AChessPiece> AChessboard::ColorTypeToClass(PieceColor Color, PieceTy
 		}
 	}
 	return nullptr;
+}
+
+void AChessboard::DisplayChessboardState()
+{
+	// print the chessboard
+	FString ChessboardString = "";
+	for (uint32 x = 0; x < 8; x++)
+	{
+		for (uint32 y = 0; y < 8; y++)
+		{
+			AChessPiece* ChessPiece = GetChessPieceAt(FVector2D(x, y));
+			if (ChessPiece == nullptr)
+			{
+				ChessboardString.AppendChar(TCHAR(' '));
+				continue;
+			}
+			if (ChessPiece->GetColor() == PieceColor::PBLACK)
+			{
+				switch (ChessPiece->GetType()) {
+				case PieceType::BISHOP:
+					ChessboardString.AppendChar(TCHAR('B'));
+					break;
+				case PieceType::KNIGHT:
+					ChessboardString.AppendChar(TCHAR('N'));
+					break;
+				case PieceType::KING:
+					ChessboardString.AppendChar(TCHAR('K'));
+					break;
+				case PieceType::QUEEN:
+					ChessboardString.AppendChar(TCHAR('Q'));
+					break;
+				case PieceType::PAWN:
+					ChessboardString.AppendChar(TCHAR('P'));
+					break;
+				case PieceType::ROOK:
+					ChessboardString.AppendChar(TCHAR('R'));
+					break;
+				}
+			}
+			if (ChessPiece->GetColor() == PieceColor::PWHITE)
+			{
+				switch (ChessPiece->GetType()) {
+				case PieceType::BISHOP:
+					ChessboardString.AppendChar(TCHAR('b'));
+					break;
+				case PieceType::KNIGHT:
+					ChessboardString.AppendChar(TCHAR('n'));
+					break;
+				case PieceType::KING:
+					ChessboardString.AppendChar(TCHAR('k'));
+					break;
+				case PieceType::QUEEN:
+					ChessboardString.AppendChar(TCHAR('q'));
+					break;
+				case PieceType::PAWN:
+					ChessboardString.AppendChar(TCHAR('p'));
+					break;
+				case PieceType::ROOK:
+					ChessboardString.AppendChar(TCHAR('r'));
+					break;
+				}
+			}
+		}
+		ChessboardString.AppendChar(TCHAR('\n'));
+	}
+
+	ChessboardString.AppendChar(TCHAR('\n'));
+
+	// Print the stack of RemovedPieces
+	for (AChessPiece* ChessPiece : RemovedPieces)
+	{
+		if (ChessPiece->GetColor() == PieceColor::PBLACK)
+		{
+			switch (ChessPiece->GetType()) {
+			case PieceType::BISHOP:
+				ChessboardString.AppendChar(TCHAR('B'));
+				break;
+			case PieceType::KNIGHT:
+				ChessboardString.AppendChar(TCHAR('N'));
+				break;
+			case PieceType::KING:
+				ChessboardString.AppendChar(TCHAR('K'));
+				break;
+			case PieceType::QUEEN:
+				ChessboardString.AppendChar(TCHAR('Q'));
+				break;
+			case PieceType::PAWN:
+				ChessboardString.AppendChar(TCHAR('P'));
+				break;
+			case PieceType::ROOK:
+				ChessboardString.AppendChar(TCHAR('R'));
+				break;
+			}
+		}
+		if (ChessPiece->GetColor() == PieceColor::PWHITE)
+		{
+			switch (ChessPiece->GetType()) {
+			case PieceType::BISHOP:
+				ChessboardString.AppendChar(TCHAR('b'));
+				break;
+			case PieceType::KNIGHT:
+				ChessboardString.AppendChar(TCHAR('n'));
+				break;
+			case PieceType::KING:
+				ChessboardString.AppendChar(TCHAR('k'));
+				break;
+			case PieceType::QUEEN:
+				ChessboardString.AppendChar(TCHAR('q'));
+				break;
+			case PieceType::PAWN:
+				ChessboardString.AppendChar(TCHAR('p'));
+				break;
+			case PieceType::ROOK:
+				ChessboardString.AppendChar(TCHAR('r'));
+				break;
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("%s"), &ChessboardString);
 }
 
 void AChessboard::DeleteAllIndicators()

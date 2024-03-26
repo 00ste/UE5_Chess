@@ -68,6 +68,13 @@ public:
 	// was no ChessPiece to restore, otherwise returns true
 	AChessPiece* GetLastCapturedChessPiece();
 
+	// Restores the last captured ChessPiece, popping it from the
+	// RemovedPieces stack and adding it back to the ChessPieceMap
+	// at the given position.
+	bool RestoreLastCapturedChessPiece(FVector2D Position);
+
+	TArray<FVector2D> GetAllOwnedPositions(PieceColor Color) const;
+
 	// Moves all the AChessPiece Actors to the location they're assigned
 	// to in the ChessPieceMap and hides the AChessPiece Actors that have
 	// been captured
@@ -144,5 +151,9 @@ private:
 
 	// Utility function to map enum parameters to TSubclasses
 	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type) const;
+
+	// (DEBUG) Prints the chessboard and the stack of captured
+	// ChessPieces on the console.
+	void DisplayChessboardState();
 
 };

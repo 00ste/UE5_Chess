@@ -52,13 +52,24 @@ public:
 	// returns false and leaves MoveHistory untouched
 	bool UndoLastMove();
 
-	// Calculates all the possible legal moves for a ChessPiece
-	// at the given Position
-	TArray<FChessMove> CalculateLegalMoves(FVector2D Position);
+	// Calculates all the pseudo-legal moves for a ChessPiece
+	// at the given Position. Pseudo-legal moves include both the
+	// fully legal moves and the ones that result in the player
+	// being checked.
+	TArray<FChessMove> CalculatePseudoLegalMoves(FVector2D Position);
 
-	// Calculates all the possible legale moves for all ChessPieces
+	// Calculates all the fully legal moves for a ChessPiece at
+	// the given Position. Fully legal moves are the ones that
+	// don't result in the player being checked.
+	TArray<FChessMove> CalculateFullyLegalMoves(FVector2D Position);
+
+	// Calculates all the pseudo-legal moves for all ChessPieces
 	// with a given Color
-	TArray<FChessMove> CalculateAllMoves(PieceColor Color);
+	TArray<FChessMove> CalculateAllPseudoLegalMoves(PieceColor Color);
+
+	// Calculates all the fully legal moves for all ChessPieces
+	// with a given Color
+	TArray<FChessMove> CalculateAllFullyLegalMoves(PieceColor Color);
 
 	// Checks if the given player is in a Check state
 	bool CheckCheck(PieceColor Color);
@@ -116,16 +127,6 @@ private:
 	uint32 CurrentPlayer;
 
 	AChessboard* Chessboard;
-
-	/*
-	// Scale factors
-	double TileSize;
-	double ChessPieceSize;
-	*/
-
-	// Map that stores the ChessPieces on the Chessboard
-	UPROPERTY(Transient)
-	TMap<FVector2D, AChessPiece*> ChessPieceMap;
 
 	// Array of Indicators that will show all possible moves
 	// for the currently selected ChessPiece

@@ -145,25 +145,16 @@ void ACH_GameMode::DoMove(FChessMove Move)
 
 bool ACH_GameMode::DoesMoveUncheck(FChessMove Move)
 {
-	if (Chessboard->GetChessPieceAt(Move.StartPosition) == nullptr)
+	AChessPiece* x = Chessboard->GetChessPieceAt(Move.StartPosition);
+
+	if (x == nullptr)
 		return false;
 
-	// Try the move without moving any AChessPiece Actors
-	// Keep track of the captured ChessPiece so it can be
-	// restored after the check is finished
-	AChessPiece* CapturedChessPiece = ChessPieceMap.FindAndRemoveChecked(Move.EndPosition);
-	AChessPiece* MovedChessPiece = ChessPieceMap.FindAndRemoveChecked(Move.StartPosition);
-	ChessPieceMap.Add(Move.StartPosition, MovedChessPiece);
+	DoMove(Move);
+	bool bResult = CheckCheck(x->GetColor());
+	UndoLastMove();
 
-	// Check for a Check state
-	bool bResult = CheckCheck(MovedChessPiece->GetColor());
-
-	// Undo the move
-	ChessPieceMap.Remove(Move.EndPosition);
-	if (CapturedChessPiece != nullptr) ChessPieceMap.Add(Move.EndPosition, CapturedChessPiece);
-	ChessPieceMap.Add(Move.StartPosition, MovedChessPiece);
-
-	return bResult;
+	return !bResult;
 }
 
 bool ACH_GameMode::UndoLastMove()
@@ -191,16 +182,7 @@ bool ACH_GameMode::UndoLastMove()
 		);
 
 		// Restore the captured ChessPiece
-		if (bSuccess)
-		{
-			AChessPiece* RestoredPiece = Chessboard->GetLastCapturedChessPiece();
-			if (RestoredPiece == nullptr) return false;
-			Chessboard->AddNewChessPiece(
-				RestoredPiece->GetType(),
-				RestoredPiece->GetColor(),
-				LastMove.CapturePosition
-			);
-		}
+		bSuccess = bSuccess && Chessboard->RestoreLastCapturedChessPiece(LastMove.CapturePosition);
 
 		break;
 		// TODO: Handle PROMOTE and CASTLE moves
@@ -215,7 +197,7 @@ bool ACH_GameMode::UndoLastMove()
 	return true;
 }
 
-TArray<FChessMove> ACH_GameMode::CalculateLegalMoves(FVector2D Position)
+TArray<FChessMove> ACH_GameMode::CalculatePseudoLegalMoves(FVector2D Position)
 {
 	RemoveAllIndicators();
 
@@ -353,17 +335,41 @@ TArray<FChessMove> ACH_GameMode::CalculateLegalMoves(FVector2D Position)
 	return Moves;
 }
 
-TArray<FChessMove> ACH_GameMode::CalculateAllMoves(PieceColor Color)
+TArray<FChessMove> ACH_GameMode::CalculateFullyLegalMoves(FVector2D Position)
+{
+	TArray<FChessMove> Result;
+	for (FChessMove Move : CalculatePseudoLegalMoves(Position))
+	{
+		if (DoesMoveUncheck(Move))
+		{
+			Result.Add(Move);
+		}
+	}
+
+	return Result;
+
+	//return CalculatePseudoLegalMoves(Position).FilterByPredicate(DoesMoveUncheck);
+}
+
+TArray<FChessMove> ACH_GameMode::CalculateAllPseudoLegalMoves(PieceColor Color)
 {
 	TArray<FChessMove> Moves;
-	TArray<FVector2D> Positions;
-	ChessPieceMap.GetKeys(Positions);
-	for (FVector2D Position : Positions)
+
+	for (FVector2D Position : Chessboard->GetAllOwnedPositions(Color))
 	{
-		if (Chessboard->GetChessPieceAt(Position)->GetColor() == Color)
-		{
-			Moves.Append(CalculateLegalMoves(Position));
-		}
+		Moves.Append(CalculatePseudoLegalMoves(Position));
+	}
+
+	return Moves;
+}
+
+TArray<FChessMove> ACH_GameMode::CalculateAllFullyLegalMoves(PieceColor Color)
+{
+	TArray<FChessMove> Moves;
+
+	for (FVector2D Position : Chessboard->GetAllOwnedPositions(Color))
+	{
+		Moves.Append(CalculateFullyLegalMoves(Position));
 	}
 
 	return Moves;
@@ -372,19 +378,15 @@ TArray<FChessMove> ACH_GameMode::CalculateAllMoves(PieceColor Color)
 bool ACH_GameMode::CheckCheck(PieceColor Color)
 {
 	PieceColor OtherColor = Color == PWHITE ? PBLACK : PWHITE;
-	TArray<FVector2D> Positions;
-	ChessPieceMap.GetKeys(Positions);
-	for (FVector2D Position : Positions)
+	for (FVector2D Position : Chessboard->GetAllOwnedPositions(OtherColor))
 	{
-		if (Chessboard->GetChessPieceAt(Position)->GetColor() == OtherColor)
+		for (FChessMove Move : CalculatePseudoLegalMoves(Position))
 		{
-			for (FChessMove Move : CalculateLegalMoves(Position))
+			AChessPiece* Piece = Chessboard->GetChessPieceAt(Move.CapturePosition);
+			if (Piece != nullptr && Piece->GetType() == KING)
 			{
-				AChessPiece* Piece = Chessboard->GetChessPieceAt(Move.EndPosition);
-				if (Piece != nullptr && Piece->GetType() == KING)
-				{
-					return true;
-				}
+				UE_LOG(LogTemp, Error, TEXT("Check! move from (%d, %d) to (%d, %d)"), Move.StartPosition[0], Move.StartPosition[1], Move.EndPosition[0], Move.EndPosition[1]);
+				return true;
 			}
 		}
 	}
@@ -393,18 +395,17 @@ bool ACH_GameMode::CheckCheck(PieceColor Color)
 
 bool ACH_GameMode::CheckCheckmate(PieceColor Color)
 {
-	TArray<FVector2D> Positions;
-	ChessPieceMap.GetKeys(Positions);
-	for (FVector2D Position : Positions)
+	// TODO: (DEBUG) REMOVE THIS
+	// return false;
+
+	for (FVector2D Position : Chessboard->GetAllOwnedPositions(Color))
 	{
-		if (Chessboard->GetChessPieceAt(Position)->GetColor() == Color)
+		for (FChessMove Move : CalculatePseudoLegalMoves(Position))
 		{
-			for (FChessMove Move : CalculateLegalMoves(Position))
-			{
-				if (DoesMoveUncheck(Move)) return true;
-			}
+			if (DoesMoveUncheck(Move)) return false;
 		}
 	}
+
 	return true;
 }
 void ACH_GameMode::UpdateChessboard()

@@ -8,6 +8,14 @@
 #include "CH_RandomPlayer.h"
 #include "EngineUtils.h"
 
+
+ACH_GameMode::ACH_GameMode()
+{
+	PlayerControllerClass = ACH_PlayerController::StaticClass();
+	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
+	//HUDClass = ACH_HUD::StaticClass();
+}
+
 void ACH_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -60,14 +68,17 @@ void ACH_GameMode::BeginPlay()
 	// AI player = 1
 	Players.Add(AI);
 	
+	MovesHistoryWidget = CreateWidget<UMovesHistory>(GetGameInstance(), WidgetClass);
+	if (MovesHistoryWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Missing MovesHistoryWidget"));
+		return;
+	}
+	MovesHistoryWidget->AddToViewport(0);
+
 	Players[CurrentPlayer]->OnTurn();
 }
 
-ACH_GameMode::ACH_GameMode()
-{
-	PlayerControllerClass = ACH_PlayerController::StaticClass();
-	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
-}
 double ACH_GameMode::GetTileSize() const
 {
 	return Chessboard->GetTileSize();
@@ -129,6 +140,8 @@ void ACH_GameMode::TurnNextPlayer()
 	// Otherwise let their turn begin
 	else
 	{
+		// log last ChessMove to MovesHistoryWidget
+		MovesHistoryWidget->AddNewMove(MovesHistory.Last());
 		Players[CurrentPlayer]->OnTurn();
 	}
 }

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "CH_PlayerInterface.h"
+#include "PlayersList.h"
+#include "MovesHistory.h"
 #include "ChessPiece.h"
 #include "Chessboard.h"
 #include "Indicator.h"
@@ -22,8 +24,6 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// ===== GAMEMODE ===== //
-
 	// Sets default values for this actor's properties
 	ACH_GameMode();
 	
@@ -82,23 +82,10 @@ public:
 	// Wrapper for AChessboard::UpdateChessboard()
 	void UpdateChessboard();
 
-	// ===== CHESSPIECE OPERATIONS ===== //
-
 	// Returns a pointer to the ChessPiece at the specified Position,
 	// Returns nullptr if there is no ChessPiece at that Position
 	// (Wrapper of AChessboard::GetChessPieceAt)
 	AChessPiece* GetChessPieceAt(FVector2D Position);
-
-	/*
-	// Returns a const pointer to a ChessPiece at the specified Position,
-	// Returns nullptr if there is no ChessPiece at that Position
-	AChessPiece const* GetConstChessPieceAt(FVector2D Position) const;
-
-	// Removes all ChessPieces from the Chessboard
-	void RemoveAllChessPieces();
-	*/
-	
-	// ===== INDICATOR OPERATIONS ===== //
 	
 	// Creates a new indicator on the EndPosition representing
 	// a possible move from StartPosition to EndPosition, adding
@@ -147,6 +134,13 @@ private:
 	TSubclassOf<AIndicator> CaptureIndicatorClass;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AIndicator> PromoteIndicatorClass;
+	// Widgets
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UMovesHistory> WidgetClass;
+
+	UPROPERTY(VisibleAnywhere)
+	UMovesHistory* MovesHistoryWidget;
+
 
 	// Utility function to map enum parameters to TSubclasses
 	TSubclassOf<AIndicator> IndicatorTypeToClass(MoveType Type) const;
@@ -160,33 +154,4 @@ private:
 	void ExploreDirection(FVector2D Position, FVector2D RootPosition,
 		FVector2D Direction, uint32 MaxLength, bool CanCapture,
 		TArray<FChessMove>* Moves, PieceColor PlayerColor);
-
-	// ===== CHESSPIECE OPERATIONS ===== //
-	/*
-	// Puts a new ChessPiece of the given PieceType and
-	// PieceColor at the given Position, returning a pointer
-	// to the new ChessPiece that was placed, or nullptr if
-	// there was already a ChessPiece in that position.
-	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
-	AChessPiece* PutChessPiece(PieceType type,
-		PieceColor color, FVector2D Position);
-	*/
-	/*
-	// Removes the ChessPiece at the given Position from
-	// the Chessboard and Destroys it. Does nothing if
-	// there's no ChessPiece at the given Position.
-	// Returns true if the ChessPiece was Destroyed
-	// successfully or if there was no ChessPiece at the
-	// given Position, otherwise returns false.
-	bool RemoveChessPiece(FVector2D Position);
-	*/
-	/*
-	// Moves a ChessPiece from one Position to another,
-	// returning true if the ChessPiece was moved
-	// successfully, returns false if there was no piece
-	// in the OldPosition
-	// DOES NOT CHECK IF THE MOVE IS LEGAL!!
-	bool MoveChessPiece(FVector2D OldPosition,
-		FVector2D NewPosition);
-	*/
 };

@@ -46,5 +46,5 @@ FChessMove::FChessMove(FVector2D StartPosition, FVector2D EndPosition, FVector2D
 
 FString FChessMove::GenerateSAN()
 {
-	return FString();
+	return FString("C2");
 }

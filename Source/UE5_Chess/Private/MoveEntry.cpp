@@ -10,12 +10,12 @@ UMoveEntry::UMoveEntry(const FObjectInitializer& ObjectInitializer)
 
 void UMoveEntry::SetWhiteMove(FText MoveText)
 {
-	MoveBlackText->SetText(MoveText);
+	MoveWhiteText->SetText(MoveText);
 }
 
 void UMoveEntry::SetBlackMove(FText MoveText)
 {
-	MoveWhiteText->SetText(MoveText);
+	MoveBlackText->SetText(MoveText);
 }
 
 void UMoveEntry::SetMoveIndex(uint32 Index)

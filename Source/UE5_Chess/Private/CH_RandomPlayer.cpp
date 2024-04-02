@@ -36,13 +36,17 @@ void ACH_RandomPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 void ACH_RandomPlayer::OnTurn()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("AI turn!"));
-	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
-	TArray<FChessMove> AllMovesList = GameMode->CalculateAllFullyLegalMoves(PieceColor::PBLACK);
-	uint32 RandomIndex = FMath::Rand() % AllMovesList.Num();
-	GameMode->DoMove(AllMovesList[RandomIndex]);
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
-	GameMode->UpdateChessboard();
-	GameMode->TurnNextPlayer();
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [&]() {
+		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+		TArray<FChessMove> AllMovesList = GameMode->CalculateAllFullyLegalMoves(PieceColor::PBLACK);
+		uint32 RandomIndex = FMath::Rand() % AllMovesList.Num();
+		GameMode->DoMove(AllMovesList[RandomIndex]);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
+		GameMode->UpdateChessboard();
+		GameMode->TurnNextPlayer();
+	}, 2, false);
 }
 
 void ACH_RandomPlayer::OnWin()

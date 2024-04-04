@@ -224,126 +224,6 @@ TSubclassOf<AChessPiece> AChessboard::ColorTypeToClass(PieceColor Color, PieceTy
 	return nullptr;
 }
 
-void AChessboard::DisplayChessboardState()
-{
-	// print the chessboard
-	FString ChessboardString = "";
-	for (uint32 x = 0; x < 8; x++)
-	{
-		for (uint32 y = 0; y < 8; y++)
-		{
-			AChessPiece* ChessPiece = GetChessPieceAt(FVector2D(x, y));
-			if (ChessPiece == nullptr)
-			{
-				ChessboardString.AppendChar(TCHAR(' '));
-				continue;
-			}
-			if (ChessPiece->GetColor() == PieceColor::PBLACK)
-			{
-				switch (ChessPiece->GetType()) {
-				case PieceType::BISHOP:
-					ChessboardString.AppendChar(TCHAR('B'));
-					break;
-				case PieceType::KNIGHT:
-					ChessboardString.AppendChar(TCHAR('N'));
-					break;
-				case PieceType::KING:
-					ChessboardString.AppendChar(TCHAR('K'));
-					break;
-				case PieceType::QUEEN:
-					ChessboardString.AppendChar(TCHAR('Q'));
-					break;
-				case PieceType::PAWN:
-					ChessboardString.AppendChar(TCHAR('P'));
-					break;
-				case PieceType::ROOK:
-					ChessboardString.AppendChar(TCHAR('R'));
-					break;
-				}
-			}
-			if (ChessPiece->GetColor() == PieceColor::PWHITE)
-			{
-				switch (ChessPiece->GetType()) {
-				case PieceType::BISHOP:
-					ChessboardString.AppendChar(TCHAR('b'));
-					break;
-				case PieceType::KNIGHT:
-					ChessboardString.AppendChar(TCHAR('n'));
-					break;
-				case PieceType::KING:
-					ChessboardString.AppendChar(TCHAR('k'));
-					break;
-				case PieceType::QUEEN:
-					ChessboardString.AppendChar(TCHAR('q'));
-					break;
-				case PieceType::PAWN:
-					ChessboardString.AppendChar(TCHAR('p'));
-					break;
-				case PieceType::ROOK:
-					ChessboardString.AppendChar(TCHAR('r'));
-					break;
-				}
-			}
-		}
-		ChessboardString.AppendChar(TCHAR('\n'));
-	}
-
-	ChessboardString.AppendChar(TCHAR('\n'));
-
-	// Print the stack of RemovedPieces
-	for (AChessPiece* ChessPiece : RemovedPieces)
-	{
-		if (ChessPiece->GetColor() == PieceColor::PBLACK)
-		{
-			switch (ChessPiece->GetType()) {
-			case PieceType::BISHOP:
-				ChessboardString.AppendChar(TCHAR('B'));
-				break;
-			case PieceType::KNIGHT:
-				ChessboardString.AppendChar(TCHAR('N'));
-				break;
-			case PieceType::KING:
-				ChessboardString.AppendChar(TCHAR('K'));
-				break;
-			case PieceType::QUEEN:
-				ChessboardString.AppendChar(TCHAR('Q'));
-				break;
-			case PieceType::PAWN:
-				ChessboardString.AppendChar(TCHAR('P'));
-				break;
-			case PieceType::ROOK:
-				ChessboardString.AppendChar(TCHAR('R'));
-				break;
-			}
-		}
-		if (ChessPiece->GetColor() == PieceColor::PWHITE)
-		{
-			switch (ChessPiece->GetType()) {
-			case PieceType::BISHOP:
-				ChessboardString.AppendChar(TCHAR('b'));
-				break;
-			case PieceType::KNIGHT:
-				ChessboardString.AppendChar(TCHAR('n'));
-				break;
-			case PieceType::KING:
-				ChessboardString.AppendChar(TCHAR('k'));
-				break;
-			case PieceType::QUEEN:
-				ChessboardString.AppendChar(TCHAR('q'));
-				break;
-			case PieceType::PAWN:
-				ChessboardString.AppendChar(TCHAR('p'));
-				break;
-			case PieceType::ROOK:
-				ChessboardString.AppendChar(TCHAR('r'));
-				break;
-			}
-		}
-	}
-
-	UE_LOG(LogTemp, Error, TEXT("%s"), &ChessboardString);
-}
-
 void AChessboard::DeleteAllIndicators()
 {
 	for (AIndicator* x : Indicators)
@@ -368,6 +248,23 @@ FVector AChessboard::GridToRealPosition(FVector2D GridPosition, uint32 ZIndex)
 		GridPosition[1] + 0.5,
 		0.0
 	) * TileSize + ZIndex * HeightDiff;
+}
+
+FString AChessboard::PositionToFileRank(FVector2D Position)
+{
+	FString File;
+	if (Position[0] == 0) File = "a";
+	if (Position[0] == 1) File = "b";
+	if (Position[0] == 2) File = "c";
+	if (Position[0] == 3) File = "d";
+	if (Position[0] == 4) File = "e";
+	if (Position[0] == 5) File = "f";
+	if (Position[0] == 6) File = "g";
+	if (Position[0] == 7) File = "h";
+	
+	uint32 Rank = 8 - Position[1];
+
+	return File + FString::FromInt(Rank);
 }
 
 void AChessboard::BeginPlay()

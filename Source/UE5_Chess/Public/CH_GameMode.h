@@ -39,8 +39,16 @@ public:
 	void TurnNextPlayer();
 
 	// Executes the Move given by changing the record in
-	// ChessPieceMap and moving the AChessPiece Actors.
+	// ChessPieceMap without updating the Chessboard.
 	void DoMove(FChessMove Move);
+
+	// Executes the Move given by changing the record in
+	// ChessPieceMap, adding the SAN of the move in the
+	// MovesHistory widget and updating the Chessboard.
+	void DoFinalMove(FChessMove Move);
+
+
+	FString GenerateSANForMove(FChessMove Move);
 
 	// Returns true if the Move results in a non-Check state,
 	// returns false otherwise
@@ -137,8 +145,7 @@ private:
 	// Widgets
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UMovesHistory> WidgetClass;
-
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	UMovesHistory* MovesHistoryWidget;
 
 

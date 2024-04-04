@@ -42,7 +42,7 @@ void ACH_RandomPlayer::OnTurn()
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
 		TArray<FChessMove> AllMovesList = GameMode->CalculateAllFullyLegalMoves(PieceColor::PBLACK);
 		uint32 RandomIndex = FMath::Rand() % AllMovesList.Num();
-		GameMode->DoMove(AllMovesList[RandomIndex]);
+		GameMode->DoFinalMove(AllMovesList[RandomIndex]);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
 		GameMode->UpdateChessboard();
 		GameMode->TurnNextPlayer();

@@ -2,6 +2,7 @@
 
 
 #include "Indicator.h"
+#include "Chessboard.h"
 
 // Sets default values
 AIndicator::AIndicator()
@@ -44,7 +45,14 @@ FChessMove::FChessMove(FVector2D StartPosition, FVector2D EndPosition, FVector2D
 	this->Type = Type;
 }
 
+/*
 FString FChessMove::GenerateSAN()
 {
+	// Moving piece
+	// Start position (only if strictly necessary)
+	// Capture
+	// End position
+	// = Promotion
 	return FString("C2");
 }
+*/

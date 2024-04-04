@@ -87,6 +87,8 @@ public:
 	inline FVector2D RealToGridPosition(FVector RealPosition);
 	inline FVector GridToRealPosition(FVector2D GridPosition, uint32 ZIndex);
 
+	static FString PositionToFileRank(FVector2D Position);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -151,9 +153,5 @@ private:
 
 	// Utility function to map enum parameters to TSubclasses
 	TSubclassOf<AChessPiece> ColorTypeToClass(PieceColor Color, PieceType Type) const;
-
-	// (DEBUG) Prints the chessboard and the stack of captured
-	// ChessPieces on the console.
-	void DisplayChessboardState();
 
 };

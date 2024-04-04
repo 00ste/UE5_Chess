@@ -131,8 +131,8 @@ void ACH_GameMode::TurnNextPlayer()
 	CurrentPlayer = (CurrentPlayer + 1) % 2;
 
 	// If the player is Checkmated end the game
-	PieceColor CurrentPlayerColor = CurrentPlayer == 0 ? PWHITE : PBLACK;
-	if (CheckCheckmate(CurrentPlayerColor))
+	PieceColor NextPlayerColor = CurrentPlayer == 0 ? PWHITE : PBLACK;
+	if (CheckCheckmate(NextPlayerColor))
 	{
 		Players[CurrentPlayer]->OnLose();
 		Players[1 - CurrentPlayer]->OnWin();
@@ -140,8 +140,6 @@ void ACH_GameMode::TurnNextPlayer()
 	// Otherwise let their turn begin
 	else
 	{
-		// log last ChessMove to MovesHistoryWidget
-		MovesHistoryWidget->AddNewMove(MovesHistory.Last());
 		Players[CurrentPlayer]->OnTurn();
 	}
 }
@@ -154,6 +152,110 @@ void ACH_GameMode::DoMove(FChessMove Move)
 		// CAPTURE is the only move type that is expected to overwrite a ChessPiece
 		Move.Type == MoveType::CAPTURE);
 	MovesHistory.Push(Move);
+}
+
+void ACH_GameMode::DoFinalMove(FChessMove Move)
+{
+	MovesHistoryWidget->AddNewMove(
+		FText::FromString(GenerateSANForMove(Move)),
+		CurrentPlayer == 0 ? PWHITE : PBLACK
+	);
+
+	DoMove(Move);
+	UpdateChessboard();
+}
+
+FString ACH_GameMode::GenerateSANForMove(FChessMove Move)
+{
+	FString PieceLetter;
+	AChessPiece* MovedChessPiece = GetChessPieceAt(Move.StartPosition);
+	switch (MovedChessPiece->GetType())
+	{
+	case PieceType::BISHOP:
+		PieceLetter = "B";
+		break;
+	case PieceType::KING:
+		PieceLetter = "K";
+		break;
+	case PieceType::QUEEN:
+		PieceLetter = "Q";
+		break;
+	case PieceType::KNIGHT:
+		PieceLetter = "N";
+		break;
+	case PieceType::ROOK:
+		PieceLetter = "R";
+		break;
+	case PieceType::PAWN:
+		PieceLetter = "";
+		break;
+	}
+
+	// Start position (only if strictly necessary)
+	FString StartPositionString = "";
+	PieceColor CurrentColor = GetChessPieceAt(Move.StartPosition)->GetColor();
+	PieceColor OpponentColor = CurrentColor == PWHITE ? PBLACK : PWHITE;
+
+	// Chessboard->UpdateChessboard();
+	for (FVector2D Position : Chessboard->GetAllOwnedPositions(CurrentColor))
+	{
+		AChessPiece* TestChessPiece = GetChessPieceAt(Position);
+		if (TestChessPiece->GetType() == MovedChessPiece->GetType())
+		{
+			if (TestChessPiece == MovedChessPiece) continue;
+			for (FChessMove PossibleMove : CalculateFullyLegalMoves(Position))
+			{
+				if (PossibleMove.EndPosition == Move.EndPosition)
+				{
+					// AMBIGUITY DETECTED!
+					// Always add the file if the two files are different
+					if (PossibleMove.StartPosition[1] != Move.StartPosition[1])
+					{
+						StartPositionString += AChessboard::PositionToFileRank(Move.StartPosition).GetCharArray()[0];
+					}
+					// Otherwise add the rank (if the files are the same the ranks must be different)
+					else
+					{
+						StartPositionString += AChessboard::PositionToFileRank(Move.StartPosition).GetCharArray()[1];
+					}
+					
+				}
+			}
+		}
+	}
+	// Chessboard->UpdateChessboard();
+
+	// Capture
+	FString CaptureMark = Move.Type == MoveType::CAPTURE ? "x" : "";
+
+	// End position
+	FString EndPositionString = AChessboard::PositionToFileRank(Move.EndPosition);
+
+	// = Promotion
+	// TODO: Promotion string
+	FString Promotion = "";
+
+	// Check
+	DoMove(Move);
+	FString CheckState;
+	if (CheckCheck(OpponentColor))
+	{
+		if (CheckCheckmate(OpponentColor))
+		{
+			CheckState = "#";
+		}
+		else
+		{
+			CheckState = "+";
+		}
+	}
+	else
+	{
+		CheckState = "";
+	}
+	UndoLastMove();
+
+	return PieceLetter + StartPositionString + CaptureMark + EndPositionString + Promotion + CheckState;
 }
 
 bool ACH_GameMode::DoesMoveUncheck(FChessMove Move)
@@ -408,9 +510,6 @@ bool ACH_GameMode::CheckCheck(PieceColor Color)
 
 bool ACH_GameMode::CheckCheckmate(PieceColor Color)
 {
-	// TODO: (DEBUG) REMOVE THIS
-	// return false;
-
 	for (FVector2D Position : Chessboard->GetAllOwnedPositions(Color))
 	{
 		for (FChessMove Move : CalculatePseudoLegalMoves(Position))

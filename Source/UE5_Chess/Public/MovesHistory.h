@@ -7,6 +7,7 @@
 // #include "Components/ScrollBox.h"
 #include "Components/VerticalBox.h"
 #include "Indicator.h"
+#include "ChessPiece.h"
 #include "MoveEntry.h"
 #include "MovesHistory.generated.h"
 
@@ -20,13 +21,12 @@ class UE5_CHESS_API UMovesHistory : public UUserWidget
 
 public:
 	UMovesHistory(const FObjectInitializer& ObjectInitializer);
-	void AddNewMove(FChessMove Move);
+	void AddNewMove(FText MoveText, PieceColor Color);
 protected:
 	virtual void NativeConstruct() override;
 private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
 	TObjectPtr<UVerticalBox> MovesContainer = nullptr;
-	// TObjectPtr<UScrollBox> MovesContainer = nullptr;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UMoveEntry> MoveEntryBP;
 	UPROPERTY()

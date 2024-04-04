@@ -88,7 +88,7 @@ void ACH_HumanPlayer::OnClick()
 		if (HitIndicator != nullptr)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Move selected!"));
-			GameMode->DoMove(HitIndicator->GetMove());
+			GameMode->DoFinalMove(HitIndicator->GetMove());
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
 			IsMyTurn = false;

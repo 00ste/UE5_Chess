@@ -29,7 +29,7 @@ struct FChessMove {
 
 	// Generates the Standard Algebraic Notation (SAN) String
 	// associated with the ChessMove
-	FString GenerateSAN();
+	// FString GenerateSAN();
 };
 
 UCLASS()

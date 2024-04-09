@@ -6,6 +6,7 @@
 #include "CH_PlayerController.h"
 #include "CH_HumanPlayer.h"
 #include "CH_RandomPlayer.h"
+#include "CH_MinimaxPlayer.h"
 #include "EngineUtils.h"
 
 
@@ -56,17 +57,20 @@ void ACH_GameMode::BeginPlay()
 
 	// Human player = 0
 	Players.Add(HumanPlayer);
-	// TODO: make random player
-	// Random Player
-	ACH_RandomPlayer* AI = GetWorld()->SpawnActor<ACH_RandomPlayer>(FVector(), FRotator());
 
-	// TODO: make ai player
+	// Random Player
+	// ACH_RandomPlayer* AI = GetWorld()->SpawnActor<ACH_RandomPlayer>(FVector(), FRotator());
+
 	// TODO: select player from main menu
-	// MinMax Player
-	//auto* AI = GetWorld()->SpawnActor<ATTT_MinimaxPlayer>(FVector(), FRotator());
+	// Minimax Player
+	ACH_MinimaxPlayer* AI = GetWorld()->SpawnActor<ACH_MinimaxPlayer>(FVector(), FRotator());
 
 	// AI player = 1
 	Players.Add(AI);
+
+	// Assign Colors to players
+	Players[0]->OwnedColor = PieceColor::PWHITE;
+	Players[1]->OwnedColor = PieceColor::PBLACK;
 	
 	MovesHistoryWidget = CreateWidget<UMovesHistory>(GetGameInstance(), WidgetClass);
 	if (MovesHistoryWidget == nullptr)
@@ -237,21 +241,14 @@ FString ACH_GameMode::GenerateSANForMove(FChessMove Move)
 
 	// Check
 	DoMove(Move);
-	FString CheckState;
+	FString CheckState = "";
 	if (CheckCheck(OpponentColor))
 	{
-		if (CheckCheckmate(OpponentColor))
-		{
-			CheckState = "#";
-		}
-		else
-		{
-			CheckState = "+";
-		}
+		CheckState = "+";
 	}
-	else
+	if (CheckCheckmate(OpponentColor))
 	{
-		CheckState = "";
+		CheckState = "#";
 	}
 	UndoLastMove();
 
@@ -512,7 +509,7 @@ bool ACH_GameMode::CheckCheckmate(PieceColor Color)
 {
 	for (FVector2D Position : Chessboard->GetAllOwnedPositions(Color))
 	{
-		for (FChessMove Move : CalculatePseudoLegalMoves(Position))
+		for (FChessMove Move : CalculateFullyLegalMoves(Position))
 		{
 			if (DoesMoveUncheck(Move)) return false;
 		}

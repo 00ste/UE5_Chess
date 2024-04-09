@@ -93,22 +93,16 @@ void ACH_HumanPlayer::OnClick()
 			GameMode->RemoveAllIndicators();
 			IsMyTurn = false;
 
-			// TODO: Remove this (debug)
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Checking for check..."));
-			if (GameMode->CheckCheck(PBLACK))
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Black is in Check!!"));
-			}
-
 			GameMode->UpdateChessboard();
 			GameMode->TurnNextPlayer();
+
 			return;
 		}
 
 		// If an empty Tile or a BLACK ChessPiece was clicked, deselect currently
 		// selected ChessPiece and remove all Indicators
  		const AChessPiece* HitPiece = GameMode->GetChessPieceAt(HitGridPos);
-		if (HitPiece == nullptr || HitPiece->GetColor() == PieceColor::PBLACK)
+		if (HitPiece == nullptr || HitPiece->GetColor() != OwnedColor)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
 			SelectedPosition = DESELECTED;
@@ -118,7 +112,7 @@ void ACH_HumanPlayer::OnClick()
 		}
 		// When clicking on a White ChessPiece, it becomes the currently selected ChessPiece
 		// and the possible moves are calculated and shown
-		if (HitPiece->GetColor() == PieceColor::PWHITE)
+		if (HitPiece->GetColor() == OwnedColor)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
 			SelectedPosition = HitGridPos;

@@ -64,8 +64,7 @@ public:
 	// Returns a pointer to the ChessPiece at the given Position
 	AChessPiece* GetChessPieceAt(FVector2D Position);
 
-	// Restores the last captured ChessPiece. Returns false if there
-	// was no ChessPiece to restore, otherwise returns true
+	// Returns the last captured ChessPiece and removes it from the stack.
 	AChessPiece* GetLastCapturedChessPiece();
 
 	// Restores the last captured ChessPiece, popping it from the
@@ -73,6 +72,8 @@ public:
 	// at the given position.
 	bool RestoreLastCapturedChessPiece(FVector2D Position);
 
+	// Returns a TArray of FVector2D grid positions occupied by
+	// ChessPieces with the given Color
 	TArray<FVector2D> GetAllOwnedPositions(PieceColor Color) const;
 
 	// Moves all the AChessPiece Actors to the location they're assigned

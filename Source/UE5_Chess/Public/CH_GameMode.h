@@ -6,10 +6,10 @@
 #include "GameFramework/GameModeBase.h"
 #include "CH_PlayerInterface.h"
 #include "PlayersList.h"
-#include "MovesHistory.h"
 #include "ChessPiece.h"
 #include "Chessboard.h"
 #include "Indicator.h"
+#include "CH_WidgetManager.h"
 #include "CH_GameMode.generated.h"
 
 
@@ -26,6 +26,10 @@ protected:
 public:
 	// Sets default values for this actor's properties
 	ACH_GameMode();
+
+	// TODO: Making this public might not be the best thing
+	// Widget Manager
+	ACH_WidgetManager* WidgetManager;
 	
 	// Returns the TileSize
 	double GetTileSize() const;
@@ -47,7 +51,8 @@ public:
 	// MovesHistory widget and updating the Chessboard.
 	void DoFinalMove(FChessMove Move);
 
-
+	// Returns a FString representing the representation of the
+	// given Move in Standard Chess Notation (SAN).
 	FString GenerateSANForMove(FChessMove Move);
 
 	// Returns true if the Move results in a non-Check state,
@@ -58,7 +63,7 @@ public:
 	// If the Move was successfully undone returns true and
 	// removes the ChessMove from MoveHistory, otherwise
 	// returns false and leaves MoveHistory untouched
-	bool UndoLastMove();
+	void UndoLastMove();
 
 	// Calculates all the pseudo-legal moves for a ChessPiece
 	// at the given Position. Pseudo-legal moves include both the
@@ -79,6 +84,12 @@ public:
 	// with a given Color
 	TArray<FChessMove> CalculateAllFullyLegalMoves(PieceColor Color);
 
+	// Converts incomplete promotion moves (with bDoesPromote = true)
+	// and PromotionTarget = PieceType::PTNONE to all possible complete
+	// promotion moves from the given TArray of FChessMoves. The promotion
+	// candidates are only QUEEN and KNIGHT to increase efficiency
+	TArray<FChessMove> ExpandPromotionMoves(TArray<FChessMove> Moves);
+
 	// Checks if the given player is in a Check state
 	bool CheckCheck(PieceColor Color);
 
@@ -89,6 +100,13 @@ public:
 
 	// Wrapper for AChessboard::UpdateChessboard()
 	void UpdateChessboard();
+
+	// Puts the current game state to the one at the given
+	// number of ChessMoves from the start of the game. The game
+	// state includes the position of all ChessPieces on the
+	// Chessboard as well as the CurrentPlayer index.
+	UFUNCTION()
+	void OnHistoryClicked(uint32 MovesFromGameStart);
 
 	// Returns a pointer to the ChessPiece at the specified Position,
 	// Returns nullptr if there is no ChessPiece at that Position
@@ -142,15 +160,13 @@ private:
 	TSubclassOf<AIndicator> CaptureIndicatorClass;
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AIndicator> PromoteIndicatorClass;
-	// Widgets
+	// Widget Manager
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UMovesHistory> WidgetClass;
-	UPROPERTY(EditDefaultsOnly)
-	UMovesHistory* MovesHistoryWidget;
+	TSubclassOf<ACH_WidgetManager> WidgetManagerClass;
 
 
-	// Utility function to map enum parameters to TSubclasses
-	TSubclassOf<AIndicator> IndicatorTypeToClass(MoveType Type) const;
+	// Utility function to map FChessMoves to TSubclasses based on their type
+	TSubclassOf<AIndicator> IndicatorTypeToClass(FChessMove Move) const;
 
 	// Recursively explores a line of Tiles starting from Position
 	// along Direction, and stops either when an obstacle is found

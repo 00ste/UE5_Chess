@@ -42,16 +42,16 @@ void ACH_HumanPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ACH_HumanPlayer::OnTurn()
 {
-	IsMyTurn = true;
+	bIsMyTurn = true;
 	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("Your turn"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Your turn"));
 	// GameInstance->SetTurnMessage(TEXT("Your turn"));
 }
 
 void ACH_HumanPlayer::OnWin()
 {
 	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("You won!"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You won!"));
 	// GameInstance->SetTurnMessage(TEXT("You won!"));
 	// GameInstance->IncrementScoreHumanPlayer();
 }
@@ -59,16 +59,21 @@ void ACH_HumanPlayer::OnWin()
 void ACH_HumanPlayer::OnLose()
 {
 	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("You lost!"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You lost!"));
 	// GameInstance->SetTurnMessage(TEXT("You lost!"));
 	// GameInstance->IncrementScoreHumanPlayer();
+}
+
+void ACH_HumanPlayer::SetWidgetManager(ACH_WidgetManager* WidgetManager_)
+{
+	this->WidgetManager = WidgetManager_;
 }
 
 void ACH_HumanPlayer::OnClick()
 {
 	FHitResult Hit = FHitResult(ForceInit);
 	GetWorld()->GetFirstPlayerController()->GetHitResultUnderCursor(ECollisionChannel::ECC_Pawn, true, Hit);
-	if (Hit.bBlockingHit && IsMyTurn) {
+	if (Hit.bBlockingHit && bIsMyTurn) {
 		// Get hit position expressed in grid coordinates
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
 
@@ -78,23 +83,31 @@ void ACH_HumanPlayer::OnClick()
 			FMath::Floor(Hit.ImpactPoint[1] / TileSize)
 		};
 
-		// TODO: remove this (debug)
-		UE_LOG(LogTemp, Error, TEXT("Clicked at position (%f, %f)"), HitGridPos[0], HitGridPos[1]);
-
 		// If an Indicator was clicked, the move gets executed and the turn ends,
 		// then the currently selected ChessPiece is deselected and all Indicators
 		// are removed
 		const AIndicator* HitIndicator = GameMode->GetIndicatorForEndPos(HitGridPos);
 		if (HitIndicator != nullptr)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Move selected!"));
-			GameMode->DoFinalMove(HitIndicator->GetMove());
-			SelectedPosition = DESELECTED;
-			GameMode->RemoveAllIndicators();
-			IsMyTurn = false;
+			// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Move selected!"));
+			SelectedMove = HitIndicator->Move;
 
-			GameMode->UpdateChessboard();
-			GameMode->TurnNextPlayer();
+			// If the ChessMove does a promotion and no promotion target was set,
+			// show a menu to allow the player to select which ChessPiece to promote to
+			if (SelectedMove.bDoesPromote && SelectedMove.PromotionTarget == PieceType::PTNONE)
+			{
+				WidgetManager->ShowPromotionMenu();
+			}
+			else
+			{
+				GameMode->DoFinalMove(SelectedMove);
+				SelectedPosition = DESELECTED;
+				GameMode->RemoveAllIndicators();
+				bIsMyTurn = false;
+
+				GameMode->UpdateChessboard();
+				GameMode->TurnNextPlayer();
+			}
 
 			return;
 		}
@@ -104,7 +117,7 @@ void ACH_HumanPlayer::OnClick()
  		const AChessPiece* HitPiece = GameMode->GetChessPieceAt(HitGridPos);
 		if (HitPiece == nullptr || HitPiece->GetColor() != OwnedColor)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
+			// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No actions here!"));
 			SelectedPosition = DESELECTED;
 			GameMode->RemoveAllIndicators();
 
@@ -114,7 +127,8 @@ void ACH_HumanPlayer::OnClick()
 		// and the possible moves are calculated and shown
 		if (HitPiece->GetColor() == OwnedColor)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
+			// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Calculating moves!"));
+			GameMode->RemoveAllIndicators();
 			SelectedPosition = HitGridPos;
 			for (FChessMove Move : GameMode->CalculateFullyLegalMoves(SelectedPosition))
 			{
@@ -124,5 +138,69 @@ void ACH_HumanPlayer::OnClick()
 		}
 	}
 
+}
+
+void ACH_HumanPlayer::OnQueenSelected()
+{
+	WidgetManager->HidePromotionMenu();
+	if (SelectedMove.bDoesPromote)
+		SelectedMove.PromotionTarget = PieceType::QUEEN;
+
+	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	GameMode->DoFinalMove(SelectedMove);
+	SelectedPosition = DESELECTED;
+	GameMode->RemoveAllIndicators();
+	bIsMyTurn = false;
+
+	GameMode->UpdateChessboard();
+	GameMode->TurnNextPlayer();
+}
+
+void ACH_HumanPlayer::OnKnightSelected()
+{
+	WidgetManager->HidePromotionMenu();
+	if (SelectedMove.bDoesPromote)
+		SelectedMove.PromotionTarget = PieceType::KNIGHT;
+
+	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	GameMode->DoFinalMove(SelectedMove);
+	SelectedPosition = DESELECTED;
+	GameMode->RemoveAllIndicators();
+	bIsMyTurn = false;
+
+	GameMode->UpdateChessboard();
+	GameMode->TurnNextPlayer();
+}
+
+void ACH_HumanPlayer::OnBishopSelected()
+{
+	WidgetManager->HidePromotionMenu();
+	if (SelectedMove.bDoesPromote)
+		SelectedMove.PromotionTarget = PieceType::BISHOP;
+
+	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	GameMode->DoFinalMove(SelectedMove);
+	SelectedPosition = DESELECTED;
+	GameMode->RemoveAllIndicators();
+	bIsMyTurn = false;
+
+	GameMode->UpdateChessboard();
+	GameMode->TurnNextPlayer();
+}
+
+void ACH_HumanPlayer::OnRookSelected()
+{
+	WidgetManager->HidePromotionMenu();
+	if (SelectedMove.bDoesPromote)
+		SelectedMove.PromotionTarget = PieceType::ROOK;
+
+	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
+	GameMode->DoFinalMove(SelectedMove);
+	SelectedPosition = DESELECTED;
+	GameMode->RemoveAllIndicators();
+	bIsMyTurn = false;
+
+	GameMode->UpdateChessboard();
+	GameMode->TurnNextPlayer();
 }
 

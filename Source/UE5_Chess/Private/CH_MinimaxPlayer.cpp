@@ -35,6 +35,8 @@ void ACH_MinimaxPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 void ACH_MinimaxPlayer::OnTurn()
 {
+	// A small delay of 0.1 seconds is used to allow the Engine to render the Chessboard
+	// after the previous move.
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [&]() {
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
@@ -42,7 +44,7 @@ void ACH_MinimaxPlayer::OnTurn()
 		FChessMove BestMove;
 		int32 BestScore = -69420;
 
-		for (FChessMove MoveCandidate : GameMode->CalculateAllFullyLegalMoves(OwnedColor))
+		for (FChessMove MoveCandidate : GameMode->ExpandPromotionMoves(GameMode->CalculateAllFullyLegalMoves(OwnedColor)))
 		{
 			GameMode->DoMove(MoveCandidate);
 			int32 NewScore = AlphaBetaMiniMax(MaxDepth - 1, BestScore, 69420, false);
@@ -56,7 +58,7 @@ void ACH_MinimaxPlayer::OnTurn()
 		}
 
 		GameMode->DoFinalMove(BestMove);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
+		// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
 		GameMode->UpdateChessboard();
 		GameMode->TurnNextPlayer();
 	}, 0.1, false);
@@ -88,8 +90,10 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 				switch (Piece->GetType())
 				{
 				case PieceType::BISHOP:
+					OwnedScore += 3;
+					break;
 				case PieceType::ROOK:
-					OwnedScore += 2;
+					OwnedScore += 5;
 					break;
 				case PieceType::KNIGHT:
 					OwnedScore += 3;
@@ -98,7 +102,7 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 					OwnedScore += 1;
 					break;
 				case PieceType::QUEEN:
-					OwnedScore += 5;
+					OwnedScore += 9;
 					break;
 				/*
 				case PieceType::KING:
@@ -111,8 +115,10 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 				switch (Piece->GetType())
 				{
 				case PieceType::BISHOP:
+					OtherScore += 3;
+					break;
 				case PieceType::ROOK:
-					OtherScore += 2;
+					OtherScore += 5;
 					break;
 				case PieceType::KNIGHT:
 					OtherScore += 3;
@@ -121,7 +127,7 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 					OtherScore += 1;
 					break;
 				case PieceType::QUEEN:
-					OtherScore += 5;
+					OtherScore += 9;
 					break;
 				/*
 				case PieceType::KING:
@@ -144,7 +150,7 @@ int32 ACH_MinimaxPlayer::AlphaBetaMiniMax(uint32 Depth, int32 Alpha, int32 Beta,
 	if (GameMode->CheckCheckmate(OtherColor)) return 1000;
 	if (bIsMax)
 	{
-		for (FChessMove MoveCandidate : GameMode->CalculateAllFullyLegalMoves(OwnedColor))
+		for (FChessMove MoveCandidate : GameMode->ExpandPromotionMoves(GameMode->CalculateAllFullyLegalMoves(OwnedColor)))
 		{
 			GameMode->DoMove(MoveCandidate);
 			Alpha = FMath::Max(Alpha, AlphaBetaMiniMax(Depth - 1, Alpha, Beta, false));
@@ -155,7 +161,7 @@ int32 ACH_MinimaxPlayer::AlphaBetaMiniMax(uint32 Depth, int32 Alpha, int32 Beta,
 	}
 	else
 	{
-		for (FChessMove MoveCandidate : GameMode->CalculateAllFullyLegalMoves(OtherColor))
+		for (FChessMove MoveCandidate : GameMode->ExpandPromotionMoves(GameMode->CalculateAllFullyLegalMoves(OwnedColor)))
 		{
 			GameMode->DoMove(MoveCandidate);
 			Beta = FMath::Min(Beta, AlphaBetaMiniMax(Depth - 1, Alpha, Beta, true));

@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 // #include "CH_GameInstance.h"
 #include "CH_PlayerInterface.h"
+#include "CH_WidgetManager.h"
+#include "Indicator.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "CH_HumanPlayer.generated.h"
@@ -28,8 +30,18 @@ public:
 	virtual void OnWin() override;
 	virtual void OnLose() override;
 
+	void SetWidgetManager(ACH_WidgetManager* WidgetManager);
+
 	UFUNCTION()
 	void OnClick();
+	UFUNCTION()
+	void OnQueenSelected();
+	UFUNCTION()
+	void OnKnightSelected();
+	UFUNCTION()
+	void OnBishopSelected();
+	UFUNCTION()
+	void OnRookSelected();
 
 protected:
 	// Called when the game starts or when spawned
@@ -39,6 +51,8 @@ private:
 	UCameraComponent* Camera;
 	// UCH_GameInstance* GameInstance;
 	FVector2D SelectedPosition;
-	const FVector2D DESELECTED = { -1, -1 };
-	bool IsMyTurn = false;
+	FChessMove SelectedMove;
+	const FVector2D DESELECTED = { -6, -9 };
+	bool bIsMyTurn = false;
+	ACH_WidgetManager* WidgetManager;
 };

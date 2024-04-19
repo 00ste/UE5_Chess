@@ -40,10 +40,10 @@ void ACH_RandomPlayer::OnTurn()
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, [&]() {
 		ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
-		TArray<FChessMove> AllMovesList = GameMode->CalculateAllFullyLegalMoves(OwnedColor);
+		TArray<FChessMove> AllMovesList = GameMode->ExpandPromotionMoves(GameMode->CalculateAllFullyLegalMoves(OwnedColor));
 		uint32 RandomIndex = FMath::Rand() % AllMovesList.Num();
 		GameMode->DoFinalMove(AllMovesList[RandomIndex]);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
+		// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::White, TEXT("Move done!"));
 		GameMode->UpdateChessboard();
 		GameMode->TurnNextPlayer();
 	}, 2, false);

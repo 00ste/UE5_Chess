@@ -7,6 +7,7 @@
 #include "CH_HumanPlayer.h"
 #include "CH_RandomPlayer.h"
 #include "CH_MinimaxPlayer.h"
+#include "CH_WidgetManager.h"
 #include "EngineUtils.h"
 
 
@@ -72,14 +73,11 @@ void ACH_GameMode::BeginPlay()
 	Players[0]->OwnedColor = PieceColor::PWHITE;
 	Players[1]->OwnedColor = PieceColor::PBLACK;
 	
-	MovesHistoryWidget = CreateWidget<UMovesHistory>(GetGameInstance(), WidgetClass);
-	if (MovesHistoryWidget == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Missing MovesHistoryWidget"));
-		return;
-	}
-	MovesHistoryWidget->AddToViewport(0);
+	// Create widget manager and bind delegates
+	WidgetManager = GetWorld()->SpawnActor<ACH_WidgetManager>(WidgetManagerClass);
+	HumanPlayer->SetWidgetManager(WidgetManager);
 
+	WidgetManager->GetMovesHistory()->OnHistoryClickedDelegate.AddDynamic(this, &ACH_GameMode::OnHistoryClicked);
 	Players[CurrentPlayer]->OnTurn();
 }
 
@@ -87,9 +85,7 @@ double ACH_GameMode::GetTileSize() const
 {
 	return Chessboard->GetTileSize();
 }
-/*
-double ACH_GameMode::GetChessboard->GetTileSize()() const { return Chessboard->GetTileSize(); }
-*/
+
 void ACH_GameMode::PrepareChessboard()
 {
 	// Delete all existing ChessPieces
@@ -154,13 +150,19 @@ void ACH_GameMode::DoMove(FChessMove Move)
 		Move.StartPosition,
 		Move.EndPosition,
 		// CAPTURE is the only move type that is expected to overwrite a ChessPiece
-		Move.Type == MoveType::CAPTURE);
+		Move.bDoesCapture);
+
+	if (Move.bDoesPromote)
+	{
+		AChessPiece* ChessPiece = GetChessPieceAt(Move.EndPosition);
+		ChessPiece->Setup(Move.PromotionTarget, ChessPiece->GetColor());
+	}
 	MovesHistory.Push(Move);
 }
 
 void ACH_GameMode::DoFinalMove(FChessMove Move)
 {
-	MovesHistoryWidget->AddNewMove(
+	WidgetManager->GetMovesHistory()->AddNewMove(
 		FText::FromString(GenerateSANForMove(Move)),
 		CurrentPlayer == 0 ? PWHITE : PBLACK
 	);
@@ -230,14 +232,31 @@ FString ACH_GameMode::GenerateSANForMove(FChessMove Move)
 	// Chessboard->UpdateChessboard();
 
 	// Capture
-	FString CaptureMark = Move.Type == MoveType::CAPTURE ? "x" : "";
+	FString CaptureMark = Move.bDoesCapture ? "x" : "";
 
 	// End position
 	FString EndPositionString = AChessboard::PositionToFileRank(Move.EndPosition);
 
 	// = Promotion
-	// TODO: Promotion string
 	FString Promotion = "";
+	if (Move.bDoesPromote)
+	{
+		switch (Move.PromotionTarget)
+		{
+		case PieceType::BISHOP:
+			Promotion = "=B";
+			break;
+		case PieceType::KNIGHT:
+			Promotion = "=N";
+			break;
+		case PieceType::QUEEN:
+			Promotion = "=Q";
+			break;
+		case PieceType::ROOK:
+			Promotion = "=R";
+			break;
+		}
+	}
 
 	// Check
 	DoMove(Move);
@@ -269,22 +288,47 @@ bool ACH_GameMode::DoesMoveUncheck(FChessMove Move)
 	return !bResult;
 }
 
-bool ACH_GameMode::UndoLastMove()
+void ACH_GameMode::UndoLastMove()
 {
+	FChessMove LastMove = MovesHistory.Pop();
+
+	// Move the ChessPiece back to where it was
+	Chessboard->MoveChessPiece(
+		LastMove.EndPosition,
+		LastMove.StartPosition,
+		// undoing a move isn't expected to overwrite
+		false
+	);
+
+	// Restore any captured ChessPieces
+	if (LastMove.bDoesCapture)
+	{
+		Chessboard->RestoreLastCapturedChessPiece(LastMove.CapturePosition);
+	}
+
+	// If the last move did a promotion replace the ChessPiece
+	// at the EndPosition with a PAWN
+	if (LastMove.bDoesPromote)
+	{
+		AChessPiece* ChessPiece = GetChessPieceAt(LastMove.StartPosition);
+		ChessPiece->Setup(PieceType::PAWN, ChessPiece->GetColor());
+	}
+
+	/*
 	FChessMove LastMove = MovesHistory.Pop();
 	bool bSuccess = true;
 
-	switch (LastMove.Type)
+	if (!LastMove.bDoesCapture)
 	{
-	case MoveType::MOVE:
 		bSuccess = Chessboard->MoveChessPiece(
 			LastMove.EndPosition,
 			LastMove.StartPosition,
 			// undoing a move isn't expected to overwrite
 			false
 		);
-		break;
-	case MoveType::CAPTURE:
+	}
+	else
+	{
 		// Move the moved ChessPiece back
 		bSuccess = Chessboard->MoveChessPiece(
 			LastMove.EndPosition,
@@ -292,27 +336,19 @@ bool ACH_GameMode::UndoLastMove()
 			// undoing a move isn't expected to overwrite
 			false
 		);
-
+	}
 		// Restore the captured ChessPiece
 		bSuccess = bSuccess && Chessboard->RestoreLastCapturedChessPiece(LastMove.CapturePosition);
 
 		break;
 		// TODO: Handle PROMOTE and CASTLE moves
 	}
-
-	// Restore MoveHistory if something went wrong
-	if (!bSuccess)
-	{
-		MovesHistory.Push(LastMove);
-		return false;
-	}
 	return true;
+	*/
 }
 
 TArray<FChessMove> ACH_GameMode::CalculatePseudoLegalMoves(FVector2D Position)
 {
-	RemoveAllIndicators();
-
 	// Get the ChessPiece and check that it's valid
 	AChessPiece const* Piece = Chessboard->GetChessPieceAt(Position);
 	if (Piece == nullptr) return TArray<FChessMove>();
@@ -367,23 +403,24 @@ TArray<FChessMove> ACH_GameMode::CalculatePseudoLegalMoves(FVector2D Position)
 				Moves.Add(FChessMove(
 					Position,
 					TargetPos,
+					true,
 					TargetPos,
-					MoveType::CAPTURE
+					false,
+					PieceType::PTNONE
 				));
 			}
 		}
 
-		// A PAWN can be promoted to another type when it reaches the opposite
-		// end of the ChessBoard
-		if (Position[1] == 7 * ColorIndex)
+		// If the PAWN is at the end of the Chessboard it can promote
+		for (int i = 0; i < Moves.Num(); i++)
 		{
-			Moves.Add(FChessMove(
-				Position,
-				Position,
-				FVector2D(-6, -9),
-				MoveType::PROMOTE
-			));
+			if (Moves[i].EndPosition[1] == 7 * ColorIndex)
+			{
+				Moves[i].bDoesPromote = true;
+			}
 		}
+
+		return Moves;
 	}
 
 	uint32 MaxLength = 8;
@@ -459,8 +496,6 @@ TArray<FChessMove> ACH_GameMode::CalculateFullyLegalMoves(FVector2D Position)
 	}
 
 	return Result;
-
-	//return CalculatePseudoLegalMoves(Position).FilterByPredicate(DoesMoveUncheck);
 }
 
 TArray<FChessMove> ACH_GameMode::CalculateAllPseudoLegalMoves(PieceColor Color)
@@ -485,6 +520,28 @@ TArray<FChessMove> ACH_GameMode::CalculateAllFullyLegalMoves(PieceColor Color)
 	}
 
 	return Moves;
+}
+
+TArray<FChessMove> ACH_GameMode::ExpandPromotionMoves(TArray<FChessMove> Moves)
+{
+	TArray<FChessMove> Result;
+
+	for (FChessMove Move : Moves)
+	{
+		if (Move.bDoesPromote)
+		{
+			Move.PromotionTarget = PieceType::KNIGHT;
+			Result.Add(Move);
+			Move.PromotionTarget = PieceType::QUEEN;
+			Result.Add(Move);
+		}
+		else
+		{
+			Result.Add(Move);
+		}
+	}
+
+	return Result;
 }
 
 bool ACH_GameMode::CheckCheck(PieceColor Color)
@@ -526,7 +583,7 @@ AIndicator const* ACH_GameMode::GetIndicatorForEndPos(FVector2D EndPos)
 {
 	for (AIndicator* Indicator : Indicators)
 	{
-		if (Indicator->GetMove().EndPosition == EndPos)
+		if (Indicator->Move.EndPosition == EndPos)
 			return Indicator;
 	}
 	return nullptr;
@@ -539,12 +596,19 @@ void ACH_GameMode::RemoveAllIndicators()
 	{
 		bDestroyed = x->Destroy();
 		if (!bDestroyed)
-			UE_LOG(LogTemp, Error, TEXT("Could not remove indicator at (%f, %f)"), x->GetMove().EndPosition[0], x->GetMove().EndPosition[1]);
+			UE_LOG(LogTemp, Error, TEXT("Could not remove indicator at (%f, %f)"), x->Move.EndPosition[0], x->Move.EndPosition[1]);
 	}
 	Indicators.Empty();
 }
-TSubclassOf<AIndicator> ACH_GameMode::IndicatorTypeToClass(MoveType Type) const
+TSubclassOf<AIndicator> ACH_GameMode::IndicatorTypeToClass(FChessMove Move) const
 {
+	if (Move.bDoesPromote)
+		return PromoteIndicatorClass;
+	if (Move.bDoesCapture)
+		return CaptureIndicatorClass;
+	return MoveIndicatorClass;
+
+	/*
 	switch (Type) {
 	case MoveType::CAPTURE:
 		return CaptureIndicatorClass;
@@ -555,6 +619,7 @@ TSubclassOf<AIndicator> ACH_GameMode::IndicatorTypeToClass(MoveType Type) const
 	default:
 		return nullptr;
 	}
+	*/
 }
 
 void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D RootPosition,
@@ -576,8 +641,10 @@ void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D RootPosition,
 		Moves->Add(FChessMove(
 			RootPosition,
 			TargetPosition,
-			FVector2D(-6,  -9),
-			MoveType::MOVE
+			false,
+			FVector2D(-6, -9),
+			false,
+			PieceType::PTNONE
 		));
 		ExploreDirection(TargetPosition, RootPosition, Direction, MaxLength - 1,
 			CanCapture, Moves, PlayerColor);
@@ -589,12 +656,44 @@ void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D RootPosition,
 			Moves->Add(FChessMove(
 				RootPosition,
 				TargetPosition,
+				true,
 				TargetPosition,
-				MoveType::CAPTURE
+				false,
+				PieceType::PTNONE
 			));
 		return;
 	}
 }
+
+void ACH_GameMode::OnHistoryClicked(uint32 MovesFromGameStart)
+{
+	// Reset state
+	PrepareChessboard();
+	WidgetManager->GetMovesHistory()->Clear();
+
+	// Do moves forwards
+	for (uint32 i = 0; i < MovesFromGameStart; i++)
+	{
+		WidgetManager->GetMovesHistory()->AddNewMove(
+			FText::FromString(GenerateSANForMove(MovesHistory[i])),
+			i % 2 == 0 ? PieceColor::PWHITE : PieceColor::PBLACK
+		);
+		DoMove(MovesHistory[i]);
+	}
+	// Update MovesHistory by removing the other ChessMoves
+	int32 NewLength = MovesFromGameStart + 1;
+	while (MovesHistory.Num() > NewLength)
+	{
+		MovesHistory.RemoveAt(NewLength);
+	}
+
+	UpdateChessboard();
+
+	// Calculate the next player and start their turn
+	CurrentPlayer += MovesFromGameStart % 2;
+	Players[CurrentPlayer]->OnTurn();
+}
+
 AChessPiece* ACH_GameMode::GetChessPieceAt(FVector2D Position)
 {
 	return Chessboard->GetChessPieceAt(Position);
@@ -603,7 +702,7 @@ AChessPiece* ACH_GameMode::GetChessPieceAt(FVector2D Position)
 AIndicator* ACH_GameMode::AddNewIndicator(FChessMove Move)
 {
 	// Determine the TSubclassOf for the MoveType
-	TSubclassOf<AIndicator> IndicatorClass = IndicatorTypeToClass(Move.Type);
+	TSubclassOf<AIndicator> IndicatorClass = IndicatorTypeToClass(Move);
 	if (IndicatorClass == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Missing Indicator class"));
@@ -619,7 +718,7 @@ AIndicator* ACH_GameMode::AddNewIndicator(FChessMove Move)
 	);
 
 	// Set up Indicator
-	Indicator->BindToMove(Move);
+	Indicator->Move = Move;
 	Indicators.Add(Indicator);
 	return Indicator;
 }

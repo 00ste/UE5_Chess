@@ -96,6 +96,8 @@ void ACH_HumanPlayer::OnClick()
 			// show a menu to allow the player to select which ChessPiece to promote to
 			if (SelectedMove.bDoesPromote && SelectedMove.PromotionTarget == PieceType::PTNONE)
 			{
+				// Disable clicking after spawning the menu
+				bIsMyTurn = false;
 				WidgetManager->ShowPromotionMenu();
 			}
 			else

@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "MovesHistory.h"
 #include "PromotionMenu.h"
+#include "PlayersList.h"
 #include "CH_WidgetManager.generated.h"
 
 
@@ -38,9 +39,12 @@ public:
 	// WIDGETS' GETTERS
 	UMovesHistory* GetMovesHistory() { return MovesHistoryWidget; }
 	UPromotionMenu* GetPromotionMenu() { return PromotionMenuWidget; }
+	UPlayersList* GetPlayersList() { return PlayersListWidget; }
 
 	void ShowPromotionMenu();
 	void HidePromotionMenu();
+	void ShowMovesHistory();
+	void ShowPlayersList();
 
 protected:
 	// Called when the game starts or when spawned
@@ -55,12 +59,18 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UMovesHistory> MovesHistoryClass;
 	UPROPERTY(EditDefaultsOnly)
-	UMovesHistory* MovesHistoryWidget;
+	TObjectPtr<UMovesHistory> MovesHistoryWidget;
 
 	// Promotion Menu
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UPromotionMenu> PromotionMenuClass;
 	UPROPERTY(EditDefaultsOnly)
-	UPromotionMenu* PromotionMenuWidget;
+	TObjectPtr<UPromotionMenu> PromotionMenuWidget;
+
+	// Players List
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UPlayersList> PlayersListClass;
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UPlayersList> PlayersListWidget;
 
 };

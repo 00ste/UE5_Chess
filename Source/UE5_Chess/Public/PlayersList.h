@@ -19,15 +19,17 @@ class UE5_CHESS_API UPlayersList : public UUserWidget
 public:
 	void SetPlayerNames(FString WhiteName, FString BlackName);
 	void AddCapturedPiece(PieceType Type, PieceColor Color);
+	void Clear();
 
 private:
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UTextBlock> WhitePlayerName = nullptr;
+		TObjectPtr<UTextBlock> WhitePlayerName = nullptr;
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UTextBlock> BlackPlayerName = nullptr;
+		TObjectPtr<UTextBlock> BlackPlayerName = nullptr;
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UHorizontalBox> WhiteCaptures = nullptr;
+		TObjectPtr<UHorizontalBox> WhiteCaptures = nullptr;
 	UPROPERTY(EditAnywhere, meta = (BindWidget))
-	TObjectPtr<UHorizontalBox> BlackCaptures = nullptr;
-	
+		TObjectPtr<UHorizontalBox> BlackCaptures = nullptr;
+
+		FString GetTextureFileName(PieceType Type, PieceColor Color);
 };

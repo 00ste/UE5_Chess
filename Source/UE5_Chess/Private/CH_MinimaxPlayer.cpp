@@ -90,10 +90,10 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 				switch (Piece->GetType())
 				{
 				case PieceType::BISHOP:
-					OwnedScore += 3;
+					OwnedScore += 2;
 					break;
 				case PieceType::ROOK:
-					OwnedScore += 5;
+					OwnedScore += 2;
 					break;
 				case PieceType::KNIGHT:
 					OwnedScore += 3;
@@ -102,7 +102,7 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 					OwnedScore += 1;
 					break;
 				case PieceType::QUEEN:
-					OwnedScore += 9;
+					OwnedScore += 5;
 					break;
 				/*
 				case PieceType::KING:
@@ -115,10 +115,10 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 				switch (Piece->GetType())
 				{
 				case PieceType::BISHOP:
-					OtherScore += 3;
+					OtherScore += 2;
 					break;
 				case PieceType::ROOK:
-					OtherScore += 5;
+					OtherScore += 2;
 					break;
 				case PieceType::KNIGHT:
 					OtherScore += 3;
@@ -127,7 +127,7 @@ uint32 ACH_MinimaxPlayer::EvaluateState() const
 					OtherScore += 1;
 					break;
 				case PieceType::QUEEN:
-					OtherScore += 9;
+					OtherScore += 5;
 					break;
 				/*
 				case PieceType::KING:

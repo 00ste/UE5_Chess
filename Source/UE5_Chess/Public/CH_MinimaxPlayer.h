@@ -32,7 +32,7 @@ public:
 	virtual void OnLose() override;
 
 private:
-	uint32 MaxDepth = 4;
+	uint32 MaxDepth = 3;
 
 	uint32 EvaluateState() const;
 	int32 AlphaBetaMiniMax(uint32 Depth, int32 Alpha, int32 Beta, bool bIsMax);

@@ -27,18 +27,35 @@ void ACH_WidgetManager::HidePromotionMenu()
 	PromotionMenuWidget->RemoveFromParent();
 }
 
-// Called when the game starts or when spawned
-void ACH_WidgetManager::BeginPlay()
+void ACH_WidgetManager::ShowMovesHistory()
 {
-	Super::BeginPlay();
-
 	MovesHistoryWidget = CreateWidget<UMovesHistory>(GetGameInstance(), MovesHistoryClass);
 	if (MovesHistoryWidget == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Missing MovesHistoryWidget"));
 		return;
 	}
-	MovesHistoryWidget->AddToViewport(0);	
+	MovesHistoryWidget->AddToViewport(0);
+}
+
+void ACH_WidgetManager::ShowPlayersList()
+{
+	PlayersListWidget = CreateWidget<UPlayersList>(GetGameInstance(), PlayersListClass);
+	if (PlayersListWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Missing PlayersListWidget"));
+		return;
+	}
+	PlayersListWidget->AddToViewport(0);
+}
+
+// Called when the game starts or when spawned
+void ACH_WidgetManager::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ShowMovesHistory();
+	ShowPlayersList();
 }
 
 // Called every frame

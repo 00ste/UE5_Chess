@@ -58,13 +58,16 @@ void ACH_GameMode::BeginPlay()
 
 	// Human player = 0
 	Players.Add(HumanPlayer);
+	FString WhitePlayerName = "Human player";
 
 	// Random Player
 	// ACH_RandomPlayer* AI = GetWorld()->SpawnActor<ACH_RandomPlayer>(FVector(), FRotator());
+	// FString BlackPlayerName = "Random player";
 
 	// TODO: select player from main menu
 	// Minimax Player
 	ACH_MinimaxPlayer* AI = GetWorld()->SpawnActor<ACH_MinimaxPlayer>(FVector(), FRotator());
+	FString BlackPlayerName = "Minimax player";
 
 	// AI player = 1
 	Players.Add(AI);
@@ -78,6 +81,7 @@ void ACH_GameMode::BeginPlay()
 	HumanPlayer->SetWidgetManager(WidgetManager);
 
 	WidgetManager->GetMovesHistory()->OnHistoryClickedDelegate.AddDynamic(this, &ACH_GameMode::OnHistoryClicked);
+	WidgetManager->GetPlayersList()->SetPlayerNames(WhitePlayerName, BlackPlayerName);
 	Players[CurrentPlayer]->OnTurn();
 }
 
@@ -94,31 +98,31 @@ void ACH_GameMode::PrepareChessboard()
 	// Put ChessPieces on the Chessboard
 	// Pawns
 	for (uint32 i = 0; i < 8; i++) {
-		//Chessboard->AddNewChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 1));
+		Chessboard->AddNewChessPiece(PieceType::PAWN, PieceColor::PBLACK, FVector2D(i, 1));
 		Chessboard->AddNewChessPiece(PieceType::PAWN, PieceColor::PWHITE, FVector2D(i, 6));
 	}
 
 	// Rooks
-	//Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 0));
-	//Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 0));
+	Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(0, 0));
+	Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PBLACK, FVector2D(7, 0));
 	Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(0, 7));
 	Chessboard->AddNewChessPiece(PieceType::ROOK, PieceColor::PWHITE, FVector2D(7, 7));
 
 	// Bishops
-	//Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 0));
-	//Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 0));
+	Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(1, 0));
+	Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PBLACK, FVector2D(6, 0));
 	Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(1, 7));
 	Chessboard->AddNewChessPiece(PieceType::BISHOP, PieceColor::PWHITE, FVector2D(6, 7));
 
 	// Knights
-	//Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 0));
-	//Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 0));
+	Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(2, 0));
+	Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PBLACK, FVector2D(5, 0));
 	Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(2, 7));
 	Chessboard->AddNewChessPiece(PieceType::KNIGHT, PieceColor::PWHITE, FVector2D(5, 7));
 
 	// Queens
 	Chessboard->AddNewChessPiece(PieceType::QUEEN, PieceColor::PWHITE, FVector2D(3, 7));
-	//Chessboard->AddNewChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 0));
+	Chessboard->AddNewChessPiece(PieceType::QUEEN, PieceColor::PBLACK, FVector2D(3, 0));
 
 	// Kings
 	Chessboard->AddNewChessPiece(PieceType::KING, PieceColor::PWHITE, FVector2D(4, 7));
@@ -162,10 +166,21 @@ void ACH_GameMode::DoMove(FChessMove Move)
 
 void ACH_GameMode::DoFinalMove(FChessMove Move)
 {
+	// Log move to history
 	WidgetManager->GetMovesHistory()->AddNewMove(
 		FText::FromString(GenerateSANForMove(Move)),
 		CurrentPlayer == 0 ? PWHITE : PBLACK
 	);
+
+	// Add captured piece icon next to player name
+	if (Move.bDoesCapture)
+	{
+		AChessPiece* CapturedPiece = GetChessPieceAt(Move.CapturePosition);
+		WidgetManager->GetPlayersList()->AddCapturedPiece(
+			CapturedPiece->GetType(),
+			CapturedPiece->GetColor()
+		);
+	}
 
 	DoMove(Move);
 	UpdateChessboard();
@@ -670,14 +685,26 @@ void ACH_GameMode::OnHistoryClicked(uint32 MovesFromGameStart)
 	// Reset state
 	PrepareChessboard();
 	WidgetManager->GetMovesHistory()->Clear();
+	WidgetManager->GetPlayersList()->Clear();
 
 	// Do moves forwards
 	for (uint32 i = 0; i < MovesFromGameStart; i++)
 	{
+		// TODO: Create a new function, this is a copypaste of DoFinalMove without the last UpdateChessboard() call
 		WidgetManager->GetMovesHistory()->AddNewMove(
 			FText::FromString(GenerateSANForMove(MovesHistory[i])),
 			i % 2 == 0 ? PieceColor::PWHITE : PieceColor::PBLACK
 		);
+
+		if (MovesHistory[i].bDoesCapture)
+		{
+			AChessPiece* CapturedPiece = GetChessPieceAt(MovesHistory[i].CapturePosition);
+			WidgetManager->GetPlayersList()->AddCapturedPiece(
+				CapturedPiece->GetType(),
+				CapturedPiece->GetColor()
+			);
+		}
+
 		DoMove(MovesHistory[i]);
 	}
 	// Update MovesHistory by removing the other ChessMoves

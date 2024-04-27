@@ -171,7 +171,6 @@ void AChessboard::UpdateChessboard()
 	}
 	RemovedPieces.Empty();
 
-	// TODO: Do this in a less brutal way
 	// Delete all AChessPiece Actors and replace them with
 	// new updated ones at the correct locations
 	TArray<FVector2D> Positions;
@@ -184,26 +183,6 @@ void AChessboard::UpdateChessboard()
 		DeleteChessPiece(Position);
 		AddNewChessPiece(Type, Color, Position);
 	}
-
-	/*
-	// Update positions of all remaining ChessPieces
-	TArray<FVector2D> Positions;
-	ChessPieceMap.GetKeys(Positions);
-
-	for (FVector2D Position : Positions)
-	{
-		AChessPiece* TempChessPiece = GetChessPieceAt(Position);
-
-		// Update position
-		if (RealToGridPosition(TempChessPiece->GetActorLocation()) != Position)
-		{
-			// TODO: Try different movement types (animations etc..)
-			TempChessPiece->SetActorLocation(
-				GridToRealPosition(Position, CHESSPIECE_ZINDEX)
-			);
-		}
-	}
-	*/
 }
 
 TSubclassOf<AChessPiece> AChessboard::ColorTypeToClass(PieceColor Color, PieceType Type) const

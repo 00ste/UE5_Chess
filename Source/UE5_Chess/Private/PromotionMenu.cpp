@@ -21,21 +21,21 @@ void UPromotionMenu::NativeConstruct()
 
 void UPromotionMenu::OnQueenSelected()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Queen selected for promotion!"));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Queen selected for promotion!"));
 	Cast<ACH_HumanPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn())->OnQueenSelected();
 }
 void UPromotionMenu::OnKnightSelected()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Knight selected for promotion!"));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Knight selected for promotion!"));
 	Cast<ACH_HumanPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn())->OnKnightSelected();
 }
 void UPromotionMenu::OnBishopSelected()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Bishop selected for promotion!"));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Bishop selected for promotion!"));
 	Cast<ACH_HumanPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn())->OnBishopSelected();
 }
 void UPromotionMenu::OnRookSelected()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Rook selected for promotion!"));
+	// GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("Rook selected for promotion!"));
 	Cast<ACH_HumanPlayer>(GetWorld()->GetFirstPlayerController()->GetPawn())->OnRookSelected();
 }

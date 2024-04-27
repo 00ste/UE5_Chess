@@ -37,10 +37,6 @@ void AChessPiece::SelfDestroy()
 void AChessPiece::BeginPlay()
 {
 	Super::BeginPlay();
-	// TODO: call this from gamemode when adding the ChessPieces, can't do it here
-	// because the Chessboard pointer is not public.
-	// ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());
-	// GameMode->Chessboard->OnResetEvent.AddDynamic(this, &AChessPiece::SelfDestroy());
 }
 
 

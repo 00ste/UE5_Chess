@@ -119,7 +119,6 @@ private:
 	TMap<FVector2D, AChessPiece*> ChessPieceMap;
 
 	// Array that stores the AIndicator Actors
-	// TODO: Possibly a TMap would be better?
 	UPROPERTY(Transient)
 	TArray<AIndicator*> Indicators;
 

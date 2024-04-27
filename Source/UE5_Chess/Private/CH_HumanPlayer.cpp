@@ -43,15 +43,11 @@ void ACH_HumanPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 void ACH_HumanPlayer::OnTurn()
 {
 	bIsMyTurn = true;
-	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Your turn"));
 	// GameInstance->SetTurnMessage(TEXT("Your turn"));
 }
 
 void ACH_HumanPlayer::OnWin()
 {
-	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You won!"));
 	// GameInstance->SetTurnMessage(TEXT("You won!"));
 	// GameInstance->IncrementScoreHumanPlayer();
 	WidgetManager->ShowGameOverScreen();
@@ -60,8 +56,6 @@ void ACH_HumanPlayer::OnWin()
 
 void ACH_HumanPlayer::OnLose()
 {
-	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You lost!"));
 	// GameInstance->SetTurnMessage(TEXT("You lost!"));
 	// GameInstance->IncrementScoreHumanPlayer();
 	WidgetManager->ShowGameOverScreen();
@@ -70,8 +64,6 @@ void ACH_HumanPlayer::OnLose()
 
 void ACH_HumanPlayer::OnDraw()
 {
-	// TODO: Remove this
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Draw!"));
 	// GameInstance->SetTurnMessage(TEXT("Draw!"));
 	// GameInstance->IncrementScoreHumanPlayer();
 	WidgetManager->ShowGameOverScreen();

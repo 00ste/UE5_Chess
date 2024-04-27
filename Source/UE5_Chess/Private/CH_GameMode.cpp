@@ -63,7 +63,6 @@ void ACH_GameMode::BeginPlay()
 	// Random Player
 	// ACH_RandomPlayer* AI = GetWorld()->SpawnActor<ACH_RandomPlayer>(FVector(), FRotator());
 
-	// TODO: select player from main menu
 	// Minimax Player
 	ACH_MinimaxPlayer* AI = GetWorld()->SpawnActor<ACH_MinimaxPlayer>(FVector(), FRotator());
 
@@ -341,7 +340,6 @@ TArray<FChessMove> ACH_GameMode::CalculatePseudoLegalMoves(FVector2D Position)
 	// - its capture pattern is different from its movement
 	//   pattern
 	// - it can be promoted
-	// - TODO: can do an "en-passant"
 	if (Piece->GetType() == PieceType::PAWN)
 	{
 		// Since a Pawn can only move forwards, its possible moves
@@ -620,7 +618,6 @@ void ACH_GameMode::ExploreDirection(FVector2D Position, FVector2D RootPosition,
 	if (TargetPiece == nullptr)
 	{
 		// CapturePosition is set to a negative vector because it's not used anyway
-		// TODO: Define this value somewhere else as a const INVALID_POSITION
 		Moves->Add(FChessMove(
 			RootPosition,
 			TargetPosition,

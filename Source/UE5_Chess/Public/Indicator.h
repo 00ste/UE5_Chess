@@ -14,9 +14,6 @@ enum MoveType : uint32 {
 };
 */
 
-// TODO: Create ChessMove class and CaptureMove, MoveMove, PromoteMove
-// as subclasses. ChessMove abstract class only declares a GenerateSAN
-// method
 USTRUCT()
 struct FChessMove {
 	GENERATED_BODY()

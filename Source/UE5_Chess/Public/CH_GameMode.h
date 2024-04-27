@@ -27,7 +27,6 @@ public:
 	// Sets default values for this actor's properties
 	ACH_GameMode();
 
-	// TODO: Making this public might not be the best thing
 	// Widget Manager
 	ACH_WidgetManager* WidgetManager;
 	

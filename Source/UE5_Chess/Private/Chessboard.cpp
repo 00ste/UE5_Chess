@@ -155,6 +155,13 @@ TArray<FVector2D> AChessboard::GetAllOwnedPositions(PieceColor Color) const
 	return Result;
 }
 
+TArray<FVector2D> AChessboard::GetAllOccupiedPositions() const
+{
+	TArray<FVector2D> Positions;
+	ChessPieceMap.GetKeys(Positions);
+	return Positions;
+}
+
 void AChessboard::UpdateChessboard()
 {
 	// Delete all AChessPieces from RemovedPieces and empty the array

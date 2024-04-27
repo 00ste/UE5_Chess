@@ -57,3 +57,7 @@ void ACH_RandomPlayer::OnLose()
 {
 }
 
+void ACH_RandomPlayer::OnDraw()
+{
+}
+

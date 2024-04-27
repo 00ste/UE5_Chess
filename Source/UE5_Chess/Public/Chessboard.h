@@ -76,6 +76,10 @@ public:
 	// ChessPieces with the given Color
 	TArray<FVector2D> GetAllOwnedPositions(PieceColor Color) const;
 
+	// Returns a TArray of FVector2D grid positions occupied by
+	// any ChessPiece
+	TArray<FVector2D> GetAllOccupiedPositions() const;
+
 	// Moves all the AChessPiece Actors to the location they're assigned
 	// to in the ChessPieceMap and hides the AChessPiece Actors that have
 	// been captured

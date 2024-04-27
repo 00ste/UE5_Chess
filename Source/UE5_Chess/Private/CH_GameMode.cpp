@@ -15,7 +15,8 @@ ACH_GameMode::ACH_GameMode()
 {
 	PlayerControllerClass = ACH_PlayerController::StaticClass();
 	DefaultPawnClass = ACH_HumanPlayer::StaticClass();
-	//HUDClass = ACH_HUD::StaticClass();
+
+	MovesSinceLastCapture = 0;
 }
 
 void ACH_GameMode::BeginPlay()
@@ -150,7 +151,8 @@ void ACH_GameMode::DoMove(FChessMove Move)
 		Move.StartPosition,
 		Move.EndPosition,
 		// CAPTURE is the only move type that is expected to overwrite a ChessPiece
-		Move.bDoesCapture);
+		Move.bDoesCapture
+	);
 
 	if (Move.bDoesPromote)
 	{
@@ -158,6 +160,9 @@ void ACH_GameMode::DoMove(FChessMove Move)
 		ChessPiece->Setup(Move.PromotionTarget, ChessPiece->GetColor());
 	}
 	MovesHistory.Push(Move);
+
+	if (Move.bDoesCapture) MovesSinceLastCapture = 0;
+	else MovesSinceLastCapture++;
 }
 
 void ACH_GameMode::DoFinalMove(FChessMove Move)
@@ -177,6 +182,7 @@ FString ACH_GameMode::GenerateSANForMove(FChessMove Move)
 	if (MovedChessPiece == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("MovedChessPiece was NULL!"));
+		return "error";
 	}
 	switch (MovedChessPiece->GetType())
 	{
@@ -316,38 +322,6 @@ void ACH_GameMode::UndoLastMove()
 		AChessPiece* ChessPiece = GetChessPieceAt(LastMove.StartPosition);
 		ChessPiece->Setup(PieceType::PAWN, ChessPiece->GetColor());
 	}
-
-	/*
-	FChessMove LastMove = MovesHistory.Pop();
-	bool bSuccess = true;
-
-	if (!LastMove.bDoesCapture)
-	{
-		bSuccess = Chessboard->MoveChessPiece(
-			LastMove.EndPosition,
-			LastMove.StartPosition,
-			// undoing a move isn't expected to overwrite
-			false
-		);
-	}
-	else
-	{
-		// Move the moved ChessPiece back
-		bSuccess = Chessboard->MoveChessPiece(
-			LastMove.EndPosition,
-			LastMove.StartPosition,
-			// undoing a move isn't expected to overwrite
-			false
-		);
-	}
-		// Restore the captured ChessPiece
-		bSuccess = bSuccess && Chessboard->RestoreLastCapturedChessPiece(LastMove.CapturePosition);
-
-		break;
-		// TODO: Handle PROMOTE and CASTLE moves
-	}
-	return true;
-	*/
 }
 
 TArray<FChessMove> ACH_GameMode::CalculatePseudoLegalMoves(FVector2D Position)
@@ -577,6 +551,12 @@ bool ACH_GameMode::CheckCheckmate(PieceColor Color)
 
 	return true;
 }
+
+bool ACH_GameMode::CheckDraw()
+{
+	return (MovesSinceLastCapture >= 75);
+}
+
 void ACH_GameMode::UpdateChessboard()
 {
 	Chessboard->UpdateChessboard();
@@ -672,6 +652,7 @@ void ACH_GameMode::OnHistoryClicked(uint32 MovesFromGameStart)
 {
 	// Reset state
 	PrepareChessboard();
+	RemoveAllIndicators();
 	CurrentPlayer = 0;
 	WidgetManager->GetMovesHistory()->Clear();
 

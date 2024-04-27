@@ -72,6 +72,10 @@ void ACH_MinimaxPlayer::OnLose()
 {
 }
 
+void ACH_MinimaxPlayer::OnDraw()
+{
+}
+
 uint32 ACH_MinimaxPlayer::EvaluateState() const
 {
 	ACH_GameMode* GameMode = Cast<ACH_GameMode>(GetWorld()->GetAuthGameMode());

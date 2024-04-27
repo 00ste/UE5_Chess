@@ -98,6 +98,10 @@ public:
 	// called for the winner and loser players respectively
 	bool CheckCheckmate(PieceColor Color);
 
+	// Checks if the current board is a draw, which happens after 75
+	// moves since the last pawn move or capture
+	bool CheckDraw();
+
 	// Wrapper for AChessboard::UpdateChessboard()
 	void UpdateChessboard();
 
@@ -148,6 +152,7 @@ private:
 
 	// History of moves
 	TArray<FChessMove> MovesHistory;
+	uint32 MovesSinceLastCapture;
 
 	// Subclasses
 	// Chessboard

@@ -27,4 +27,5 @@ public:
 	virtual void OnTurn() = 0;
 	virtual void OnWin() = 0;
 	virtual void OnLose() = 0;
+	virtual void OnDraw() = 0;
 };

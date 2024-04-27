@@ -30,6 +30,7 @@ public:
 	virtual void OnTurn() override;
 	virtual void OnWin() override;
 	virtual void OnLose() override;
+	virtual void OnDraw() override;
 
 private:
 	uint32 MaxDepth = 4;

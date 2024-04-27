@@ -64,6 +64,14 @@ void ACH_HumanPlayer::OnLose()
 	// GameInstance->IncrementScoreHumanPlayer();
 }
 
+void ACH_HumanPlayer::OnDraw()
+{
+	// TODO: Remove this
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Draw!"));
+	// GameInstance->SetTurnMessage(TEXT("Draw!"));
+	// GameInstance->IncrementScoreHumanPlayer();
+}
+
 void ACH_HumanPlayer::SetWidgetManager(ACH_WidgetManager* WidgetManager_)
 {
 	this->WidgetManager = WidgetManager_;

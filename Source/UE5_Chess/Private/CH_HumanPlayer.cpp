@@ -54,6 +54,8 @@ void ACH_HumanPlayer::OnWin()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You won!"));
 	// GameInstance->SetTurnMessage(TEXT("You won!"));
 	// GameInstance->IncrementScoreHumanPlayer();
+	WidgetManager->ShowGameOverScreen();
+	WidgetManager->GetGameOverScreen()->SetGameOverTextWin();
 }
 
 void ACH_HumanPlayer::OnLose()
@@ -62,6 +64,8 @@ void ACH_HumanPlayer::OnLose()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("You lost!"));
 	// GameInstance->SetTurnMessage(TEXT("You lost!"));
 	// GameInstance->IncrementScoreHumanPlayer();
+	WidgetManager->ShowGameOverScreen();
+	WidgetManager->GetGameOverScreen()->SetGameOverTextLose();
 }
 
 void ACH_HumanPlayer::OnDraw()
@@ -70,6 +74,8 @@ void ACH_HumanPlayer::OnDraw()
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Draw!"));
 	// GameInstance->SetTurnMessage(TEXT("Draw!"));
 	// GameInstance->IncrementScoreHumanPlayer();
+	WidgetManager->ShowGameOverScreen();
+	WidgetManager->GetGameOverScreen()->SetGameOverTextDraw();
 }
 
 void ACH_HumanPlayer::SetWidgetManager(ACH_WidgetManager* WidgetManager_)

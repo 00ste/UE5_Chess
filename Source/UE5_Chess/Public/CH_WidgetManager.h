@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "MovesHistory.h"
 #include "PromotionMenu.h"
+#include "GameOverScreen.h"
 #include "CH_WidgetManager.generated.h"
 
 
@@ -38,9 +39,12 @@ public:
 	// WIDGETS' GETTERS
 	UMovesHistory* GetMovesHistory() { return MovesHistoryWidget; }
 	UPromotionMenu* GetPromotionMenu() { return PromotionMenuWidget; }
+	UGameOverScreen* GetGameOverScreen() { return GameOverScreenWidget; }
 
 	void ShowPromotionMenu();
 	void HidePromotionMenu();
+	void ShowGameOverScreen();
+	void HideGameOverScreen();
 
 protected:
 	// Called when the game starts or when spawned
@@ -62,5 +66,11 @@ private:
 	TSubclassOf<UPromotionMenu> PromotionMenuClass;
 	UPROPERTY(EditDefaultsOnly)
 	UPromotionMenu* PromotionMenuWidget;
+
+	// Game Over Screen
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameOverScreen> GameOverScreenClass;
+	UPROPERTY(EditDefaultsOnly)
+	UGameOverScreen* GameOverScreenWidget;
 
 };

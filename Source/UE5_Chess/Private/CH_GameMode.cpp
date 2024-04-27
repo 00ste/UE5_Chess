@@ -655,6 +655,7 @@ void ACH_GameMode::OnHistoryClicked(uint32 MovesFromGameStart)
 	RemoveAllIndicators();
 	CurrentPlayer = 0;
 	WidgetManager->GetMovesHistory()->Clear();
+	WidgetManager->HideGameOverScreen();
 
 	// Do moves forwards
 	for (uint32 i = 0; i < MovesFromGameStart; i++)

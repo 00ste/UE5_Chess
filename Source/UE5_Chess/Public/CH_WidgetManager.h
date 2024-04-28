@@ -10,12 +10,6 @@
 #include "CH_WidgetManager.generated.h"
 
 
-// DELEGATES SIGNATURES
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNewMoveSignature, FText, MoveText);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPromotionRequestSignature);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPromotionSelectedSignature, uint32, PromotionCandidate);
-
-
 UCLASS()
 class UE5_CHESS_API ACH_WidgetManager : public AActor
 {
@@ -24,17 +18,6 @@ class UE5_CHESS_API ACH_WidgetManager : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ACH_WidgetManager();
-
-	// DELEGATE VARIABLES
-	// Broadcasted when a new ChessMove is made
-	UPROPERTY(BlueprintAssignable)
-	FOnNewMoveSignature OnNewMoveDelegate;
-	// Broadcasted when a ChessPiece controlled by a HumanPlayer needs to be promoted
-	UPROPERTY(BlueprintAssignable)
-	FOnPromotionRequestSignature OnPromotionRequestDelegate;
-	// Broadcasted when the user selected a PieceType to promote a ChessPiece from the PromotionMenu
-	UPROPERTY(BlueprintAssignable)
-	FOnPromotionSelectedSignature OnPromotionSelectedDelegate;
 
 	// WIDGETS' GETTERS
 	UMovesHistory* GetMovesHistory() { return MovesHistoryWidget; }

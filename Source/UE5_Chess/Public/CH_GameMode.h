@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "CH_PlayerInterface.h"
-#include "PlayersList.h"
 #include "ChessPiece.h"
 #include "Chessboard.h"
 #include "Indicator.h"
